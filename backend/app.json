@@ -1,0 +1,39 @@
+{
+  "name": "Dreams Saloon Backend",
+  "description": "Node.js/Express backend API for Dreams Saloon Management System",
+  "repository": "https://github.com/yourusername/dreams-saloon",
+  "logo": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/nodedotjs.svg",
+  "success_url": "/api/health",
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "PORT": {
+      "description": "Port number for the server",
+      "value": "5000"
+    },
+    "MONGODB_URI": {
+      "description": "MongoDB connection string",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "JWT secret key for authentication",
+      "generator": "secret"
+    },
+    "CORS_ORIGIN": {
+      "description": "Allowed CORS origins (frontend URL)",
+      "value": "https://your-frontend.netlify.app"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "scripts": {
+    "prebuild": "npm install",
+    "build": "echo 'No build step required'",
+    "start": "node src/server.js"
+  }
+}

@@ -1,0 +1,18 @@
+# Dreams Saloon Backend - Render Configuration
+
+# Build and start commands
+build = "npm install"
+start = "node src/server.js"
+
+# Health check endpoint
+healthCheckPath = "/api/health"
+
+# Environment
+[env]
+NODE_ENV = "production"
+PORT = "5000"
+
+# Auto-deploy settings
+branch = "main"
+buildFilter = 
+  paths = ["backend/**"]

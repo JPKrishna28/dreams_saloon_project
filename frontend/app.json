@@ -1,0 +1,13 @@
+{
+  "name": "Dreams Saloon Frontend",
+  "description": "React.js frontend for Dreams Saloon Management System",
+  "repository": "https://github.com/yourusername/dreams-saloon",
+  "logo": "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/react.svg",
+  "success_url": "/",
+  "env": {
+    "REACT_APP_API_URL": {
+      "description": "Backend API URL",
+      "value": "https://your-backend-api.onrender.com/api"
+    }
+  }
+}
