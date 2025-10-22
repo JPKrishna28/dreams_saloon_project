@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   ArrowRight
 } from 'lucide-react';
-import { appointmentAPI } from '../services/api';
+import { appointmentAPI, serviceAPI } from '../services/api';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -37,65 +37,53 @@ const Appointments = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Customer Info, 2: Services, 3: Date/Time, 4: Confirmation
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [servicesList, setServicesList] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(true);
 
-  const servicesList = [
-    {
-      name: 'Hair Cut',
-      price: 150,
-      duration: 30,
-      description: 'Professional hair cutting with modern styles',
-      icon: '✂️'
-    },
-    {
-      name: 'Beard Trim',
-      price: 80,
-      duration: 20,
-      description: 'Expert beard trimming and shaping',
-      icon: '🧔'
-    },
-    {
-      name: 'Shave',
-      price: 100,
-      duration: 25,
-      description: 'Traditional wet shave with premium products',
-      icon: '🪒'
-    },
-    {
-      name: 'Hair Styling',
-      price: 200,
-      duration: 45,
-      description: 'Professional styling for special occasions',
-      icon: '💇‍♂️'
-    },
-    {
-      name: 'Hair Wash',
-      price: 50,
-      duration: 15,
-      description: 'Refreshing hair wash with quality shampoo',
-      icon: '🚿'
-    },
-    {
-      name: 'Facial',
-      price: 300,
-      duration: 60,
-      description: 'Deep cleansing facial treatment',
-      icon: '🧴'
-    },
-    {
-      name: 'Massage',
-      price: 250,
-      duration: 45,
-      description: 'Relaxing head and shoulder massage',
-      icon: '💆‍♂️'
-    },
-    {
-      name: 'Complete Grooming',
-      price: 500,
-      duration: 90,
-      description: 'Full grooming package with multiple services',
-      icon: '⭐'
+  // Fetch services function
+  const fetchServices = useCallback(async () => {
+    try {
+      setLoadingServices(true);
+      const response = await serviceAPI.getAll({ isActive: true });
+      const services = response.services.map(service => ({
+        name: service.name,
+        price: service.price,
+        duration: service.duration,
+        description: service.description,
+        category: service.category,
+        icon: getCategoryIcon(service.category)
+      }));
+      setServicesList(services);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      toast.error('Failed to load services');
+      // Fallback to basic services if API fails
+      setServicesList([
+        { name: 'Hair Cut', price: 150, duration: 30, description: 'Professional hair cutting', category: 'Hair Care', icon: '✂️' },
+        { name: 'Beard Trim', price: 80, duration: 20, description: 'Expert beard trimming', category: 'Beard Care', icon: '🧔' },
+        { name: 'Shave', price: 100, duration: 25, description: 'Traditional wet shave', category: 'Beard Care', icon: '🪒' }
+      ]);
+    } finally {
+      setLoadingServices(false);
     }
-  ];
+  }, []);
+
+  // Helper function to get category icons
+  const getCategoryIcon = (category) => {
+    const iconMap = {
+      'Hair Care': '✂️',
+      'Beard Care': '🧔',
+      'Skin Care': '🧴',
+      'Styling': '💇‍♂️',
+      'Complete Package': '⭐'
+    };
+    return iconMap[category] || '💫';
+  };
+
+  // Fetch services when component mounts
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
 
   // Fetch available slots function
   const fetchAvailableSlots = useCallback(async () => {
@@ -219,7 +207,7 @@ const Appointments = () => {
     try {
       const appointmentData = {
         customerInfo: formData.customerInfo,
-        services: formData.services.map(serviceName => ({ name: serviceName })),
+        services: formData.services, // Send array of service names directly
         appointmentDate: formData.appointmentDate.toISOString().split('T')[0],
         appointmentTime: formData.appointmentTime,
         notes: {
@@ -364,36 +352,59 @@ const Appointments = () => {
         <p className="text-gray-600">Choose the services you'd like to book</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {servicesList.map((service) => (
-          <div
-            key={service.name}
-            className={`border rounded-lg p-4 cursor-pointer transition-all ${
-              formData.services.includes(service.name)
-                ? 'border-red-500 bg-red-50'
-                : 'border-gray-300 hover:border-red-300'
-            }`}
-            onClick={() => handleServiceToggle(service.name)}
+      {loadingServices ? (
+        <div className="flex justify-center items-center py-8">
+          <LoaderIcon className="h-8 w-8 animate-spin text-red-500" />
+          <span className="ml-2 text-gray-600">Loading services...</span>
+        </div>
+      ) : servicesList.length === 0 ? (
+        <div className="text-center py-8">
+          <AlertCircleIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">No services available at the moment.</p>
+          <button 
+            onClick={fetchServices}
+            className="mt-2 text-red-600 hover:text-red-700 font-medium"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-2xl mr-3">{service.icon}</span>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                  <p className="text-sm text-gray-600">{service.description}</p>
-                  <div className="flex items-center mt-1 space-x-4">
-                    <span className="text-red-600 font-semibold">₹{service.price}</span>
-                    <span className="text-gray-500 text-sm">{service.duration} min</span>
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {servicesList.map((service) => (
+            <div
+              key={service.name}
+              className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                formData.services.includes(service.name)
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-300 hover:border-red-300'
+              }`}
+              onClick={() => handleServiceToggle(service.name)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">{service.icon}</span>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{service.name}</h3>
+                    <p className="text-sm text-gray-600">{service.description}</p>
+                    <div className="flex items-center mt-1 space-x-4">
+                      <span className="text-red-600 font-semibold">₹{service.price}</span>
+                      <span className="text-gray-500 text-sm">{service.duration} min</span>
+                      {service.category && (
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          {service.category}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
+                {formData.services.includes(service.name) && (
+                  <CheckCircleIcon className="h-6 w-6 text-red-500" />
+                )}
               </div>
-              {formData.services.includes(service.name) && (
-                <CheckCircleIcon className="h-6 w-6 text-red-500" />
-              )}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {formData.services.length > 0 && (
         <div className="bg-gray-50 p-4 rounded-lg">

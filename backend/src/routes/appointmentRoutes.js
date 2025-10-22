@@ -10,18 +10,6 @@ const { handleValidationErrors } = require('../middleware/validation');
 
 const router = express.Router();
 
-// Service pricing configuration
-const servicePricing = {
-    'Hair Cut': { price: 150, duration: 30 },
-    'Beard Trim': { price: 80, duration: 20 },
-    'Shave': { price: 100, duration: 25 },
-    'Hair Styling': { price: 200, duration: 45 },
-    'Hair Wash': { price: 50, duration: 15 },
-    'Facial': { price: 300, duration: 60 },
-    'Massage': { price: 250, duration: 45 },
-    'Complete Grooming': { price: 500, duration: 90 }
-};
-
 // Get all appointments with filters and pagination
 router.get('/', [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
@@ -120,18 +108,42 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Helper function to validate and get service info
+const validateAndGetServices = async (serviceNames) => {
+    const services = await Service.find({ 
+        name: { $in: serviceNames },
+        isActive: true 
+    });
+    
+    const serviceMap = {};
+    services.forEach(service => {
+        serviceMap[service.name] = service;
+    });
+    
+    // Check if all requested services exist and are active
+    const invalidServices = serviceNames.filter(name => !serviceMap[name]);
+    if (invalidServices.length > 0) {
+        throw new Error(`Invalid or inactive services: ${invalidServices.join(', ')}`);
+    }
+    
+    return serviceMap;
+};
+
 // Create new appointment
 router.post('/', [
     body('customerInfo.name').trim().notEmpty().withMessage('Customer name is required'),
     body('customerInfo.phone').matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
     body('services').isArray({ min: 1 }).withMessage('At least one service is required'),
-    body('services.*.name').isIn(Object.keys(servicePricing)).withMessage('Invalid service name'),
+    body('services.*').isString().notEmpty().withMessage('Service name cannot be empty'),
     body('appointmentDate').isISO8601().withMessage('Valid appointment date is required'),
     body('appointmentTime').matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Please enter time in HH:MM format'),
     body('employee').optional().isMongoId().withMessage('Invalid employee ID')
 ], handleValidationErrors, async (req, res) => {
     try {
         const { customerInfo, services, appointmentDate, appointmentTime, employee, notes } = req.body;
+
+        // Validate services and get their info from database
+        const serviceMap = await validateAndGetServices(services);
 
         // Find or create customer
         let customer = await Customer.findOne({ phone: customerInfo.phone });
@@ -146,16 +158,13 @@ router.post('/', [
 
         // Calculate total amount and prepare services with pricing
         let totalAmount = 0;
-        const processedServices = services.map(service => {
-            const serviceInfo = servicePricing[service.name];
-            if (!serviceInfo) {
-                throw new Error(`Invalid service: ${service.name}`);
-            }
-            totalAmount += serviceInfo.price;
+        const processedServices = services.map(serviceName => {
+            const service = serviceMap[serviceName];
+            totalAmount += service.price;
             return {
                 name: service.name,
-                price: serviceInfo.price,
-                duration: serviceInfo.duration
+                price: service.price,
+                duration: service.duration
             };
         });
 
@@ -235,7 +244,7 @@ router.put('/:id', [
     body('customerInfo.name').optional().trim().notEmpty().withMessage('Customer name cannot be empty'),
     body('customerInfo.phone').optional().matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
     body('services').optional().isArray({ min: 1 }).withMessage('At least one service is required'),
-    body('services.*.name').optional().isIn(Object.keys(servicePricing)).withMessage('Invalid service name'),
+    body('services.*').optional().isString().notEmpty().withMessage('Service name cannot be empty'),
     body('appointmentDate').optional().isISO8601().withMessage('Valid appointment date is required'),
     body('appointmentTime').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Please enter time in HH:MM format'),
     body('status').optional().isIn(['pending', 'confirmed', 'in-progress', 'completed', 'cancelled', 'no-show']).withMessage('Invalid status'),
@@ -279,14 +288,17 @@ router.put('/:id', [
         }
 
         if (services) {
+            // Validate services and get their info from database
+            const serviceMap = await validateAndGetServices(services);
+            
             let totalAmount = 0;
-            const processedServices = services.map(service => {
-                const serviceInfo = servicePricing[service.name];
-                totalAmount += serviceInfo.price;
+            const processedServices = services.map(serviceName => {
+                const service = serviceMap[serviceName];
+                totalAmount += service.price;
                 return {
                     name: service.name,
-                    price: serviceInfo.price,
-                    duration: serviceInfo.duration
+                    price: service.price,
+                    duration: service.duration
                 };
             });
             
@@ -387,7 +399,7 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
 // Get available time slots for a date
 router.get('/available-slots/:date', [
     query('employee').optional().isMongoId().withMessage('Invalid employee ID'),
-    query('service').optional().isIn(Object.keys(servicePricing)).withMessage('Invalid service name')
+    query('service').optional().isString().notEmpty().withMessage('Service name cannot be empty')
 ], handleValidationErrors, async (req, res) => {
     try {
         const { date } = req.params;
@@ -579,14 +591,38 @@ router.get('/stats/dashboard', async (req, res) => {
     }
 });
 
-// Get service pricing
-router.get('/services/pricing', (req, res) => {
-    res.json({
-        success: true,
-        data: {
-            services: servicePricing
-        }
-    });
+// Get active services for appointment booking
+router.get('/services/pricing', async (req, res) => {
+    try {
+        const services = await Service.find({ isActive: true })
+            .select('name description price duration category')
+            .sort({ category: 1, name: 1 });
+
+        // Convert to the format expected by frontend
+        const servicesMap = {};
+        services.forEach(service => {
+            servicesMap[service.name] = {
+                price: service.price,
+                duration: service.duration,
+                description: service.description,
+                category: service.category
+            };
+        });
+
+        res.json({
+            success: true,
+            data: {
+                services: servicesMap,
+                servicesList: services // Also provide the array format
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching services for pricing:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch service pricing'
+        });
+    }
 });
 
 module.exports = router;
