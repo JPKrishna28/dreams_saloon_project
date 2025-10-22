@@ -82,6 +82,19 @@ export const appointmentAPI = {
   getServicePricing: () => api.get('/appointments/services/pricing'),
 };
 
+// Service API
+export const serviceAPI = {
+  getAll: (params) => api.get('/services', { params }),
+  getById: (id) => api.get(`/services/${id}`),
+  create: (data) => api.post('/services', data),
+  update: (id, data) => api.put(`/services/${id}`, data),
+  delete: (id) => api.delete(`/services/${id}`),
+  toggleStatus: (id) => api.patch(`/services/${id}/toggle-status`),
+  getByCategory: (category) => api.get(`/services/category/${category}`),
+  getPopular: (params) => api.get('/services/analytics/popular', { params }),
+  getStats: () => api.get('/services/analytics/stats'),
+};
+
 // Billing API
 export const billingAPI = {
   getAll: (params) => api.get('/billing', { params }),

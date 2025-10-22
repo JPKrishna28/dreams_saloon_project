@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Appointment = require('../models/Appointment');
 const Customer = require('../models/Customer');
 const Employee = require('../models/Employee');
+const Service = require('../models/Service');
 const { authenticateAdmin } = require('../middleware/auth');
 const { handleValidationErrors } = require('../middleware/validation');
 

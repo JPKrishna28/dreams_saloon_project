@@ -13,6 +13,7 @@ import AdminAppointments from './pages/AdminAppointments';
 import CustomerManagement from './pages/CustomerManagement';
 import EmployeeManagement from './pages/EmployeeManagement';
 import BillingManagement from './pages/BillingManagement';
+import ServiceManagement from './pages/ServiceManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -73,6 +74,11 @@ function App() {
             <Route path="/admin/billing" element={
               <ProtectedRoute>
                 <BillingManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/services" element={
+              <ProtectedRoute>
+                <ServiceManagement />
               </ProtectedRoute>
             } />
           </Routes>

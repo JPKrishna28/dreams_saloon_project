@@ -28,6 +28,7 @@ const AdminLayout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: HomeIcon },
     { name: 'Appointments', href: '/admin/appointments', icon: CalendarIcon },
+    { name: 'Services', href: '/admin/services', icon: ScissorsIcon },
     { name: 'Customers', href: '/admin/customers', icon: UsersIcon },
     { name: 'Employees', href: '/admin/employees', icon: UserGroupIcon },
     { name: 'Billing', href: '/admin/billing', icon: CreditCardIcon },
