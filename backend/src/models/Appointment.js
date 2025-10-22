@@ -19,8 +19,7 @@ const appointmentSchema = new mongoose.Schema({
     services: [{
         name: {
             type: String,
-            required: [true, 'Service name is required'],
-            enum: ['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage', 'Complete Grooming']
+            required: [true, 'Service name is required']
         },
         price: {
             type: Number,
