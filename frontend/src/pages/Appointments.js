@@ -45,7 +45,11 @@ const Appointments = () => {
     try {
       setLoadingServices(true);
       const response = await serviceAPI.getAll({ isActive: true });
-      const services = response.services.map(service => ({
+      
+      // Handle response structure properly
+      const servicesData = response.data?.data?.services || response.data?.services || [];
+      
+      const services = servicesData.map(service => ({
         name: service.name,
         price: service.price,
         duration: service.duration,
