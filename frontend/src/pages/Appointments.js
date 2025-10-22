@@ -219,6 +219,9 @@ const Appointments = () => {
         }
       };
 
+      console.log('Sending appointment data:', appointmentData);
+      console.log('Available services:', servicesList.map(s => s.name));
+
       const response = await appointmentAPI.create(appointmentData);
       
       if (response.data.success) {
@@ -248,7 +251,17 @@ const Appointments = () => {
       }
     } catch (error) {
       console.error('Error booking appointment:', error);
-      const message = error.response?.data?.message || 'Failed to book appointment';
+      console.error('Error response:', error.response?.data);
+      
+      let message = 'Failed to book appointment';
+      if (error.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        message = error.response.data.errors.join(', ');
+      } else if (error.response?.status === 500) {
+        message = 'Server error. Please try again or contact support.';
+      }
+      
       toast.error(message);
     } finally {
       setLoading(false);
