@@ -5,7 +5,7 @@ const Appointment = require('../models/Appointment');
 const Customer = require('../models/Customer');
 const Employee = require('../models/Employee');
 const Service = require('../models/Service');
-const { authenticateAdmin } = require('../middleware/auth');
+const { authenticateAdmin } = require('../middleware/authMiddleware');
 const { handleValidationErrors } = require('../middleware/validation');
 
 const router = express.Router();
@@ -110,23 +110,64 @@ router.get('/:id', async (req, res) => {
 
 // Helper function to validate and get service info
 const validateAndGetServices = async (serviceNames) => {
-    const services = await Service.find({ 
-        name: { $in: serviceNames },
-        isActive: true 
-    });
-    
-    const serviceMap = {};
-    services.forEach(service => {
-        serviceMap[service.name] = service;
-    });
-    
-    // Check if all requested services exist and are active
-    const invalidServices = serviceNames.filter(name => !serviceMap[name]);
-    if (invalidServices.length > 0) {
-        throw new Error(`Invalid or inactive services: ${invalidServices.join(', ')}`);
+    try {
+        console.log('Validating services:', serviceNames);
+        
+        const services = await Service.find({ 
+            name: { $in: serviceNames },
+            isActive: true 
+        });
+        
+        console.log('Found services:', services.map(s => s.name));
+        
+        const serviceMap = {};
+        services.forEach(service => {
+            serviceMap[service.name] = service;
+        });
+        
+        // Check if all requested services exist and are active
+        const invalidServices = serviceNames.filter(name => !serviceMap[name]);
+        
+        // If some services are missing from database, use fallback pricing
+        if (invalidServices.length > 0) {
+            console.warn('Some services not found in database, using fallback pricing for:', invalidServices);
+            
+            // Fallback service pricing for compatibility
+            const fallbackPricing = {
+                'Hair Cut': { price: 150, duration: 30, description: 'Professional hair cutting' },
+                'Beard Trim': { price: 80, duration: 20, description: 'Expert beard trimming' },
+                'Shave': { price: 100, duration: 25, description: 'Traditional wet shave' },
+                'Hair Styling': { price: 200, duration: 45, description: 'Professional styling' },
+                'Hair Wash': { price: 50, duration: 15, description: 'Refreshing hair wash' },
+                'Facial': { price: 300, duration: 60, description: 'Deep cleansing facial' },
+                'Massage': { price: 250, duration: 45, description: 'Relaxing massage' },
+                'Complete Grooming': { price: 500, duration: 90, description: 'Full grooming package' }
+            };
+            
+            // Add fallback services to serviceMap
+            invalidServices.forEach(serviceName => {
+                if (fallbackPricing[serviceName]) {
+                    serviceMap[serviceName] = {
+                        name: serviceName,
+                        ...fallbackPricing[serviceName],
+                        category: 'Hair Care',
+                        isActive: true
+                    };
+                }
+            });
+            
+            // Check again for truly invalid services
+            const stillInvalid = serviceNames.filter(name => !serviceMap[name]);
+            if (stillInvalid.length > 0) {
+                throw new Error(`Invalid services: ${stillInvalid.join(', ')}`);
+            }
+        }
+        
+        return serviceMap;
+    } catch (error) {
+        console.error('Error in validateAndGetServices:', error);
+        throw error;
     }
-    
-    return serviceMap;
 };
 
 // Create new appointment
