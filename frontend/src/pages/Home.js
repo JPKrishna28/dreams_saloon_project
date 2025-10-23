@@ -142,23 +142,32 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-primary-red to-red-600 text-white">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center">
+      <section className="relative text-white overflow-hidden" style={{ minHeight: '100vh' }}>
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-r from-primary-red to-red-600 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('/hero.jpg')`
+          }}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-red/80 to-red-600/80"></div>
+        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex items-center min-h-screen">
+          <div className="text-center w-full">
             <div className="flex justify-center mb-8">
-              <div className="bg-white bg-opacity-20 rounded-full p-6">
+              <div className="bg-white bg-opacity-30 backdrop-blur-sm rounded-full p-6 shadow-2xl">
                 <ScissorsIcon className="h-16 w-16 text-white" />
               </div>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-bold font-heading mb-4">
+            <h1 className="text-4xl md:text-6xl font-bold font-heading mb-4 text-white drop-shadow-2xl">
               Dreams Saloon
             </h1>
-            <p className="text-xl md:text-2xl mb-2 text-red-100">
+            <p className="text-xl md:text-2xl mb-2 text-white drop-shadow-lg font-medium">
               Barbershop – Hair Cut & Shaves
             </p>
-            <p className="text-lg md:text-xl mb-8 text-red-200">
+            <p className="text-lg md:text-xl mb-8 text-white drop-shadow-lg bg-black bg-opacity-30 rounded-lg px-4 py-2 inline-block">
               Affordable Pricing • Stylish Look • Clean Interface
             </p>
             
@@ -178,14 +187,14 @@ const Home = () => {
             </div>
 
             {/* Contact Info */}
-            <div className="mt-12 flex flex-col sm:flex-row gap-6 justify-center items-center text-red-100">
-              <div className="flex items-center space-x-2">
+            <div className="mt-12 flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <div className="flex items-center space-x-2 bg-black bg-opacity-40 rounded-lg px-4 py-2 text-white backdrop-blur-sm">
                 <PhoneIcon className="h-5 w-5" />
-                <span>Ramesh: 9963388556</span>
+                <span className="font-medium">Ramesh: 9963388556</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 bg-black bg-opacity-40 rounded-lg px-4 py-2 text-white backdrop-blur-sm">
                 <PhoneIcon className="h-5 w-5" />
-                <span>Rambabu: 9666699201</span>
+                <span className="font-medium">Rambabu: 9666699201</span>
               </div>
             </div>
           </div>

@@ -1,0 +1,13 @@
+# Hero Image Placeholder
+
+This is a placeholder file for hero.jpg
+
+To add your hero image:
+1. Replace this file with your hero.jpg image
+2. Make sure the file is named exactly "hero.jpg"
+3. Place it in the frontend/src/ directory
+
+The image should be:
+- High quality (1920x1080 or larger)
+- Professional barbershop/salon theme
+- Good contrast for white text overlay
