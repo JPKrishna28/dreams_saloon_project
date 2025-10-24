@@ -87,21 +87,41 @@ const CustomerManagement = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.name.trim()) {
+    // Trim all string fields
+    const trimmedData = {
+      name: formData.name.trim(),
+      phone: formData.phone.replace(/\s+/g, ''), // Remove all spaces
+      email: formData.email.trim(),
+      address: formData.address.trim()
+    };
+    
+    if (!trimmedData.name) {
       newErrors.name = 'Name is required';
     }
     
-    if (!formData.phone.trim()) {
+    if (!trimmedData.phone) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^[6-9]\d{9}$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid Indian mobile number';
+    } else if (!/^[6-9]\d{9}$/.test(trimmedData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit Indian mobile number starting with 6-9';
     }
     
-    if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
+    if (trimmedData.email && !/^\S+@\S+\.\S+$/.test(trimmedData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
     setErrors(newErrors);
+    
+    // Update form data with trimmed values
+    if (Object.keys(newErrors).length === 0) {
+      setFormData(prev => ({
+        ...prev,
+        name: trimmedData.name,
+        phone: trimmedData.phone,
+        email: trimmedData.email,
+        address: trimmedData.address
+      }));
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
@@ -143,7 +163,20 @@ const CustomerManagement = () => {
       setSelectedCustomer(null);
     } catch (error) {
       console.error('Error saving customer:', error);
-      const message = error.response?.data?.message || 'Failed to save customer';
+      console.error('Error response:', error.response?.data);
+      console.error('Form data:', formData);
+      
+      let message = 'Failed to save customer';
+      if (error.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        message = Array.isArray(error.response.data.errors) 
+          ? error.response.data.errors.join(', ')
+          : error.response.data.errors;
+      } else if (error.response?.status === 400) {
+        message = 'Invalid customer data. Please check all fields.';
+      }
+      
       toast.error(message);
     } finally {
       setLoading(false);
@@ -184,7 +217,7 @@ const CustomerManagement = () => {
   };
 
   // Calculate customer tier based on visits
-  const getCustomerTier = (totalVisits) => {
+  const getCustomerTier = (totalVisits = 0) => {
     if (totalVisits >= 20) return { name: 'VIP', color: 'bg-purple-100 text-purple-800' };
     if (totalVisits >= 10) return { name: 'Gold', color: 'bg-yellow-100 text-yellow-800' };
     if (totalVisits >= 5) return { name: 'Silver', color: 'bg-gray-100 text-gray-800' };
@@ -292,13 +325,13 @@ const CustomerManagement = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-full bg-primary-red flex items-center justify-center text-white font-medium">
-                              {customer.name.charAt(0).toUpperCase()}
+                              {customer.name ? customer.name.charAt(0).toUpperCase() : '?'}
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{customer.name}</div>
+                            <div className="text-sm font-medium text-gray-900">{customer.name || 'Unknown'}</div>
                             <div className="text-sm text-gray-500">
-                              {customer.loyaltyPoints} loyalty points
+                              {customer.loyaltyPoints || 0} loyalty points
                             </div>
                           </div>
                         </div>
@@ -307,7 +340,7 @@ const CustomerManagement = () => {
                         <div className="text-sm text-gray-900">
                           <div className="flex items-center space-x-1">
                             <PhoneIcon className="h-4 w-4 text-gray-400" />
-                            <span>{customer.phone}</span>
+                            <span>{customer.phone || 'No phone'}</span>
                           </div>
                           {customer.email && (
                             <div className="flex items-center space-x-1 mt-1">
@@ -321,10 +354,10 @@ const CustomerManagement = () => {
                         <div className="text-sm text-gray-900">
                           <div className="flex items-center space-x-1">
                             <TrendingUpIcon className="h-4 w-4 text-green-500" />
-                            <span>{customer.totalVisits} visits</span>
+                            <span>{customer.totalVisits || 0} visits</span>
                           </div>
                           <div className="text-sm text-gray-500 mt-1">
-                            ₹{customer.totalSpent.toLocaleString()} total
+                            ₹{(customer.totalSpent || 0).toLocaleString()} total
                           </div>
                         </div>
                       </td>
@@ -623,10 +656,10 @@ const CustomerManagement = () => {
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="h-16 w-16 rounded-full bg-primary-red flex items-center justify-center text-white text-2xl font-bold">
-                    {selectedCustomer.name.charAt(0).toUpperCase()}
+                    {selectedCustomer.name ? selectedCustomer.name.charAt(0).toUpperCase() : '?'}
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">{selectedCustomer.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">{selectedCustomer.name || 'Unknown'}</h3>
                     <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
                       <div className="flex items-center space-x-1">
                         <PhoneIcon className="h-4 w-4" />
