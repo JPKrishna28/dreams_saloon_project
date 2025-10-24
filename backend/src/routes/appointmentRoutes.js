@@ -302,6 +302,9 @@ router.put('/:id', [
 
         const { customerInfo, services, appointmentDate, appointmentTime, status, employee, notes, rating, feedback } = req.body;
 
+        // Store old status for comparison later
+        const oldStatus = appointment.status;
+
         // If time or date is being updated, check availability
         if ((appointmentDate || appointmentTime) && status !== 'cancelled') {
             const newDate = appointmentDate || appointment.appointmentDate;
@@ -356,9 +359,11 @@ router.put('/:id', [
         if (feedback) appointment.feedback = feedback;
 
         // If completing appointment, update customer stats
-        if (status === 'completed' && appointment.status !== 'completed') {
+        if (status === 'completed' && oldStatus !== 'completed') {
+            console.log(`Updating customer stats for appointment ${appointment._id}: ${oldStatus} -> ${status}`);
             const customer = await Customer.findById(appointment.customer);
             if (customer) {
+                const previousSpent = customer.totalSpent;
                 customer.totalVisits += 1;
                 customer.totalSpent += appointment.totalAmount;
                 customer.lastVisit = new Date();
@@ -367,6 +372,7 @@ router.put('/:id', [
                 customer.loyaltyPoints += Math.floor(appointment.totalAmount / 10);
                 
                 await customer.save();
+                console.log(`Customer ${customer.name} spending updated: ₹${previousSpent} -> ₹${customer.totalSpent} (+₹${appointment.totalAmount})`);
             }
 
             // Update employee performance
