@@ -731,5 +731,3 @@ const CustomerManagement = () => {
 };
 
 export default CustomerManagement;
-
-export default CustomerManagement;
