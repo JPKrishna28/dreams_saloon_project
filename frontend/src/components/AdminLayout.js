@@ -7,7 +7,6 @@ import {
   Calendar as CalendarIcon, 
   CreditCard as CreditCardIcon, 
   Users as UserGroupIcon, 
-  Settings as CogIcon, 
   LogOut as LogOutIcon, 
   Menu as MenuIcon, 
   X as XIcon,
@@ -30,9 +29,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Appointments', href: '/admin/appointments', icon: CalendarIcon },
     { name: 'Services', href: '/admin/services', icon: ScissorsIcon },
     { name: 'Customers', href: '/admin/customers', icon: UsersIcon },
-    { name: 'Employees', href: '/admin/employees', icon: UserGroupIcon },
-    { name: 'Billing', href: '/admin/billing', icon: CreditCardIcon },
-    { name: 'Settings', href: '/admin/settings', icon: CogIcon },
+    
   ];
 
   const isActivePage = (href) => {
