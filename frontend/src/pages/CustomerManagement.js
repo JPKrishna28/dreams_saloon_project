@@ -6,7 +6,6 @@ import {
   Filter as FilterIcon,
   Plus as PlusIcon,
   Edit as EditIcon,
-  Eye as EyeIcon,
   Phone as PhoneIcon,
   Mail as MailIcon,
   Calendar as CalendarIcon,
@@ -24,7 +23,6 @@ const CustomerManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [pagination, setPagination] = useState({});
@@ -180,20 +178,6 @@ const CustomerManagement = () => {
       toast.error(message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Handle view customer
-  const handleViewCustomer = async (customer) => {
-    try {
-      const response = await customerAPI.getById(customer._id);
-      if (response.data.success) {
-        setSelectedCustomer(response.data.data);
-        setShowViewModal(true);
-      }
-    } catch (error) {
-      console.error('Error fetching customer details:', error);
-      toast.error('Failed to load customer details');
     }
   };
 
@@ -371,13 +355,6 @@ const CustomerManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleViewCustomer(customer)}
-                            className="text-indigo-600 hover:text-indigo-900 flex items-center space-x-1"
-                          >
-                            <EyeIcon className="h-4 w-4" />
-                            <span>View</span>
-                          </button>
                           <button
                             onClick={() => handleEditCustomer(customer)}
                             className="text-primary-red hover:text-red-700 flex items-center space-x-1"
@@ -633,129 +610,6 @@ const CustomerManagement = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* View Customer Modal */}
-      {showViewModal && selectedCustomer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Customer Details</h2>
-              <button
-                onClick={() => setShowViewModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XIcon className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-6">
-              {/* Customer Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="h-16 w-16 rounded-full bg-primary-red flex items-center justify-center text-white text-2xl font-bold">
-                    {selectedCustomer.name ? selectedCustomer.name.charAt(0).toUpperCase() : '?'}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{selectedCustomer.name || 'Unknown'}</h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                      <div className="flex items-center space-x-1">
-                        <PhoneIcon className="h-4 w-4" />
-                        <span>{selectedCustomer.phone}</span>
-                      </div>
-                      {selectedCustomer.email && (
-                        <div className="flex items-center space-x-1">
-                          <MailIcon className="h-4 w-4" />
-                          <span>{selectedCustomer.email}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="bg-white rounded-lg p-3">
-                    <div className="text-2xl font-bold text-primary-red">{selectedCustomer.totalVisits}</div>
-                    <div className="text-sm text-gray-600">Total Visits</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <div className="text-2xl font-bold text-green-600">₹{selectedCustomer.totalSpent.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">Total Spent</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <div className="text-2xl font-bold text-blue-600">{selectedCustomer.loyaltyPoints}</div>
-                    <div className="text-sm text-gray-600">Loyalty Points</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <div className={`text-2xl font-bold ${getCustomerTier(selectedCustomer.totalVisits).color.includes('purple') ? 'text-purple-600' : 
-                      getCustomerTier(selectedCustomer.totalVisits).color.includes('yellow') ? 'text-yellow-600' : 
-                      getCustomerTier(selectedCustomer.totalVisits).color.includes('gray') ? 'text-gray-600' : 'text-orange-600'}`}>
-                      {getCustomerTier(selectedCustomer.totalVisits).name}
-                    </div>
-                    <div className="text-sm text-gray-600">Tier Status</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Personal Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <CalendarIcon className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-600">Date of Birth:</span>
-                      <span>{formatDate(selectedCustomer.dateOfBirth)}</span>
-                    </div>
-                    {selectedCustomer.address && (
-                      <div className="flex items-start space-x-2">
-                        <MapPinIcon className="h-4 w-4 text-gray-400 mt-0.5" />
-                        <span className="text-gray-600">Address:</span>
-                        <span className="flex-1">{selectedCustomer.address}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Visit History</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">First Visit:</span>
-                      <span>{formatDate(selectedCustomer.createdAt)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Last Visit:</span>
-                      <span>{formatDate(selectedCustomer.lastVisit)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        selectedCustomer.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {selectedCustomer.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Loyalty Status */}
-              {selectedCustomer.totalVisits > 0 && selectedCustomer.totalVisits % 5 === 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-2">
-                    <StarIcon className="h-5 w-5 text-yellow-500" />
-                    <span className="font-medium text-yellow-800">
-                      🎉 Eligible for Free Service! This customer has completed {selectedCustomer.totalVisits} visits.
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
