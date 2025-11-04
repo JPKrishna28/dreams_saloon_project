@@ -10,6 +10,16 @@ const { handleValidationErrors } = require('../middleware/validation');
 
 const router = express.Router();
 
+// Helper function to get ordinal suffix (1st, 2nd, 3rd, 4th, 5th, etc.)
+const getOrdinalSuffix = (number) => {
+    const j = number % 10;
+    const k = number % 100;
+    if (j === 1 && k !== 11) return 'st';
+    if (j === 2 && k !== 12) return 'nd';
+    if (j === 3 && k !== 13) return 'rd';
+    return 'th';
+};
+
 // Get all appointments with filters and pagination
 router.get('/', [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
@@ -225,7 +235,17 @@ router.post('/', [
 
         // Check if customer is eligible for discount (5th visit free)
         let discountApplied = { type: 'none', amount: 0 };
-        if (customer.totalVisits > 0 && (customer.totalVisits + 1) % 5 === 0) {
+        const nextVisitNumber = customer.totalVisits + 1;
+        const isEligibleForDiscount = nextVisitNumber % 5 === 0;
+        
+        console.log(`Customer ${customer.name} loyalty check:`, {
+            currentVisits: customer.totalVisits,
+            nextVisitNumber,
+            isEligibleForDiscount,
+            totalAmount: totalAmount
+        });
+        
+        if (customer.totalVisits >= 0 && isEligibleForDiscount) {
             // Find cheapest service for discount
             const cheapestService = processedServices.reduce((min, service) => 
                 service.price < min.price ? service : min
@@ -234,9 +254,15 @@ router.post('/', [
             discountApplied = {
                 type: 'loyalty',
                 amount: cheapestService.price,
-                reason: '5th visit free - cheapest service'
+                reason: `${nextVisitNumber}${getOrdinalSuffix(nextVisitNumber)} visit free - cheapest service`
             };
             totalAmount -= cheapestService.price;
+            
+            console.log(`Loyalty discount applied:`, {
+                cheapestService: cheapestService.name,
+                discountAmount: cheapestService.price,
+                newTotalAmount: totalAmount
+            });
         }
 
         // Create appointment

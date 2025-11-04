@@ -9,6 +9,7 @@ import {
   Scissors as ScissorsIcon,
   CheckCircle as CheckCircleIcon,
   AlertCircle as AlertCircleIcon,
+  Star as StarIcon,
   Loader as LoaderIcon,
   ArrowLeft,
   ArrowRight
@@ -37,6 +38,7 @@ const Appointments = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Customer Info, 2: Services, 3: Date/Time, 4: Confirmation
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [servicesList, setServicesList] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
@@ -91,21 +93,36 @@ const Appointments = () => {
 
   // Fetch available slots function
   const fetchAvailableSlots = useCallback(async () => {
+    if (!formData.appointmentDate) {
+      setAvailableSlots([]);
+      return;
+    }
+
     try {
-      // Generate time slots from 9 AM to 6 PM
-      const slots = [];
-      for (let hour = 9; hour < 18; hour++) {
-        for (let minute = 0; minute < 60; minute += 30) {
-          const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-          slots.push(time);
+      setLoadingSlots(true);
+      const dateString = formData.appointmentDate.toISOString().split('T')[0];
+      const response = await appointmentAPI.getAvailableSlots(dateString);
+      
+      if (response.data.success) {
+        // Extract just the time slots that are available
+        const slots = response.data.data.availableSlots.map(slot => slot.time);
+        setAvailableSlots(slots);
+        
+        if (slots.length === 0) {
+          toast.info('No available slots for this date');
         }
+      } else {
+        console.error('Failed to fetch available slots:', response.data.message);
+        setAvailableSlots([]);
       }
-      setAvailableSlots(slots);
     } catch (error) {
       console.error('Error fetching available slots:', error);
       toast.error('Failed to load available time slots');
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
     }
-  }, []);
+  }, [formData.appointmentDate]);
 
   // Fetch available slots when date changes
   useEffect(() => {
@@ -463,20 +480,34 @@ const Appointments = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Appointment Time
+            {loadingSlots && <span className="text-sm text-gray-500 ml-2">(Loading available slots...)</span>}
           </label>
           <select
             name="appointmentTime"
             value={formData.appointmentTime}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            disabled={loadingSlots || availableSlots.length === 0}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
-            <option value="">Select time</option>
+            <option value="">
+              {loadingSlots 
+                ? 'Loading slots...' 
+                : availableSlots.length === 0 
+                  ? 'No slots available' 
+                  : 'Select time'
+              }
+            </option>
             {availableSlots.map((slot) => (
               <option key={slot} value={slot}>
                 {slot}
               </option>
             ))}
           </select>
+          {availableSlots.length === 0 && !loadingSlots && formData.appointmentDate && (
+            <p className="text-sm text-red-600 mt-1">
+              No available slots for this date. Please select a different date.
+            </p>
+          )}
         </div>
       </div>
 
@@ -561,6 +592,16 @@ const Appointments = () => {
           <div className="text-sm text-yellow-800">
             <p className="font-medium">Payment Information:</p>
             <p>Payment will be collected at the salon after your service is completed.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start">
+          <StarIcon className="h-5 w-5 text-blue-600 mt-0.5 mr-3" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium">Loyalty Program:</p>
+            <p>Every 5th visit, get your cheapest service absolutely free! 🎉</p>
           </div>
         </div>
       </div>
