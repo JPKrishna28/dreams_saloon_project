@@ -87,7 +87,34 @@ const appointmentSchema = new mongoose.Schema({
     },
     feedback: {
         type: String,
-        maxlength: [500, 'Feedback cannot be more than 500 characters']
+        maxlength: [1000, 'Feedback cannot be more than 1000 characters']
+    },
+    // Detailed feedback ratings
+    serviceQuality: {
+        type: Number,
+        min: 1,
+        max: 5
+    },
+    staffBehavior: {
+        type: Number,
+        min: 1,
+        max: 5
+    },
+    ambiance: {
+        type: Number,
+        min: 1,
+        max: 5
+    },
+    valueForMoney: {
+        type: Number,
+        min: 1,
+        max: 5
+    },
+    wouldRecommend: {
+        type: Boolean
+    },
+    feedbackSubmittedAt: {
+        type: Date
     }
 }, {
     timestamps: true

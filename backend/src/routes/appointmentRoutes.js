@@ -706,12 +706,27 @@ router.get('/services/pricing', async (req, res) => {
 
 // Submit feedback for an appointment
 router.post('/:id/feedback', [
-    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
-    body('feedback').optional().isLength({ max: 500 }).withMessage('Feedback cannot be more than 500 characters'),
-    body('customerPhone').matches(/^[6-9]\d{9}$/).withMessage('Valid customer phone number is required')
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Overall rating must be between 1 and 5'),
+    body('comment').optional().isLength({ max: 1000 }).withMessage('Comment cannot be more than 1000 characters'),
+    body('serviceQuality').optional().isInt({ min: 1, max: 5 }).withMessage('Service quality rating must be between 1 and 5'),
+    body('staffBehavior').optional().isInt({ min: 1, max: 5 }).withMessage('Staff behavior rating must be between 1 and 5'),
+    body('ambiance').optional().isInt({ min: 1, max: 5 }).withMessage('Ambiance rating must be between 1 and 5'),
+    body('valueForMoney').optional().isInt({ min: 1, max: 5 }).withMessage('Value for money rating must be between 1 and 5'),
+    body('wouldRecommend').optional().isBoolean().withMessage('Would recommend must be true or false')
 ], handleValidationErrors, async (req, res) => {
     try {
-        const { rating, feedback, customerPhone } = req.body;
+        console.log('Feedback submission request body:', req.body);
+        console.log('Appointment ID:', req.params.id);
+        
+        const { 
+            rating, 
+            comment, 
+            serviceQuality, 
+            staffBehavior, 
+            ambiance, 
+            valueForMoney, 
+            wouldRecommend 
+        } = req.body;
         const appointmentId = req.params.id;
 
         // Find the appointment
@@ -719,40 +734,51 @@ router.post('/:id/feedback', [
             .populate('customer', 'phone name');
 
         if (!appointment) {
+            console.log('Appointment not found for ID:', appointmentId);
             return res.status(404).json({
                 success: false,
                 message: 'Appointment not found'
             });
         }
 
-        // Verify the customer phone matches
-        if (appointment.customer.phone !== customerPhone) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to provide feedback for this appointment'
-            });
-        }
+        console.log('Appointment found:', appointment.customerInfo);
 
+        // For URL-based feedback (no phone verification needed since it comes from QR/link)
         // Check if appointment is completed
         if (appointment.status !== 'completed') {
+            console.log('Appointment not completed, status:', appointment.status);
             return res.status(400).json({
                 success: false,
                 message: 'Can only provide feedback for completed appointments'
             });
         }
 
-        // Update appointment with feedback
+        // Update appointment with comprehensive feedback
         appointment.rating = rating;
-        appointment.feedback = feedback || '';
+        appointment.feedback = comment || '';
+        appointment.serviceQuality = serviceQuality || 5;
+        appointment.staffBehavior = staffBehavior || 5;
+        appointment.ambiance = ambiance || 5;
+        appointment.valueForMoney = valueForMoney || 5;
+        appointment.wouldRecommend = wouldRecommend !== undefined ? wouldRecommend : true;
+        appointment.feedbackSubmittedAt = new Date();
+        
         await appointment.save();
 
+        console.log('Feedback saved successfully');
+        
         res.json({
             success: true,
             message: 'Feedback submitted successfully',
             data: {
                 appointmentId: appointment._id,
                 rating: appointment.rating,
-                feedback: appointment.feedback
+                feedback: appointment.feedback,
+                serviceQuality: appointment.serviceQuality,
+                staffBehavior: appointment.staffBehavior,
+                ambiance: appointment.ambiance,
+                valueForMoney: appointment.valueForMoney,
+                wouldRecommend: appointment.wouldRecommend
             }
         });
     } catch (error) {
