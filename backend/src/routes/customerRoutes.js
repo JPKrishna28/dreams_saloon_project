@@ -13,7 +13,8 @@ router.get('/', [
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
     query('search').optional().trim().isLength({ max: 100 }).withMessage('Search term too long'),
     query('sortBy').optional().isIn(['name', 'totalVisits', 'totalSpent', 'lastVisit', 'createdAt']).withMessage('Invalid sort field'),
-    query('sortOrder').optional().isIn(['asc', 'desc']).withMessage('Sort order must be asc or desc')
+    query('sortOrder').optional().isIn(['asc', 'desc']).withMessage('Sort order must be asc or desc'),
+    query('withAppointments').optional().isBoolean().withMessage('withAppointments must be boolean')
 ], handleValidationErrors, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -21,6 +22,7 @@ router.get('/', [
         const search = req.query.search || '';
         const sortBy = req.query.sortBy || 'createdAt';
         const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+        const withAppointments = req.query.withAppointments === 'true';
 
         // Build search query
         let searchQuery = {};
@@ -34,6 +36,20 @@ router.get('/', [
             };
         }
 
+        // Add isActive filter if provided
+        if (req.query.isActive !== undefined) {
+            searchQuery.isActive = req.query.isActive === 'true';
+        }
+
+        // If withAppointments is true, only show customers who have made appointments
+        if (withAppointments) {
+            const customersWithAppointments = await Appointment.distinct('customer');
+            searchQuery._id = { $in: customersWithAppointments };
+        }
+
+        console.log('Customer query params:', { page, limit, search, sortBy, sortOrder, isActive: req.query.isActive, withAppointments });
+        console.log('Final search query:', JSON.stringify(searchQuery, null, 2));
+
         // Get customers with pagination
         const customers = await Customer.find(searchQuery)
             .sort({ [sortBy]: sortOrder })
@@ -45,6 +61,8 @@ router.get('/', [
         // Get total count for pagination
         const totalCustomers = await Customer.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalCustomers / limit);
+
+        console.log(`Found ${customers.length} customers out of ${totalCustomers} total`);
 
         res.json({
             success: true,

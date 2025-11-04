@@ -22,6 +22,7 @@ const CustomerManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showWithAppointments, setShowWithAppointments] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -39,21 +40,25 @@ const CustomerManagement = () => {
   const [errors, setErrors] = useState({});
 
   // Fetch customers
-  const fetchCustomers = async (page = 1, search = searchTerm, status = filterStatus) => {
+  const fetchCustomers = async (page = 1, search = searchTerm, status = filterStatus, withAppointments = showWithAppointments) => {
     try {
       setLoading(true);
       const params = {
         page,
         limit: 10,
         ...(search && { search }),
-        ...(status !== 'all' && { isActive: status === 'active' })
+        ...(status !== 'all' && { isActive: status === 'active' }),
+        ...(withAppointments && { withAppointments: true })
       };
 
+      console.log('Fetching customers with params:', params);
       const response = await customerAPI.getAll(params);
+      console.log('Customer API response:', response.data);
       
       if (response.data.success) {
         setCustomers(response.data.data.customers);
         setPagination(response.data.data.pagination);
+        console.log('Customers fetched:', response.data.data.customers.length);
       } else {
         toast.error('Failed to fetch customers');
       }
@@ -73,12 +78,23 @@ const CustomerManagement = () => {
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setTimeout(() => fetchCustomers(1, value, filterStatus), 300);
+    setTimeout(() => fetchCustomers(1, value, filterStatus, showWithAppointments), 300);
   };
 
   const handleFilterChange = (status) => {
     setFilterStatus(status);
-    fetchCustomers(1, searchTerm, status);
+    fetchCustomers(1, searchTerm, status, showWithAppointments);
+  };
+
+  // Handle appointments filter change
+  const handleAppointmentsFilterChange = (showOnly) => {
+    setShowWithAppointments(showOnly);
+    fetchCustomers(1, searchTerm, filterStatus, showOnly);
+  };
+
+  // Helper function for pagination
+  const handlePageChange = (page) => {
+    fetchCustomers(page, searchTerm, filterStatus, showWithAppointments);
   };
 
   // Form validation
@@ -253,6 +269,19 @@ const CustomerManagement = () => {
               <option value="inactive">Inactive</option>
             </select>
           </div>
+
+          {/* Appointments Filter */}
+          <div className="flex items-center space-x-2">
+            <label className="flex items-center space-x-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={showWithAppointments}
+                onChange={(e) => handleAppointmentsFilterChange(e.target.checked)}
+                className="rounded border-gray-300 text-primary-red focus:ring-primary-red"
+              />
+              <span>Only customers with appointments</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -377,14 +406,14 @@ const CustomerManagement = () => {
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
               <button
-                onClick={() => fetchCustomers(pagination.currentPage - 1)}
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
                 disabled={!pagination.hasPrev}
                 className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 Previous
               </button>
               <button
-                onClick={() => fetchCustomers(pagination.currentPage + 1)}
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
                 disabled={!pagination.hasNext}
                 className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
