@@ -80,6 +80,8 @@ export const appointmentAPI = {
   getAvailableSlots: (date, params) => api.get(`/appointments/available-slots/${date}`, { params }),
   getDashboardStats: () => api.get('/appointments/stats/dashboard'),
   getServicePricing: () => api.get('/appointments/services/pricing'),
+  submitFeedback: (id, data) => api.post(`/appointments/${id}/feedback`, data),
+  getAllFeedback: (params) => api.get('/appointments/feedback/all', { params }),
 };
 
 // Service API

@@ -698,4 +698,115 @@ router.get('/services/pricing', async (req, res) => {
     }
 });
 
+// Submit feedback for an appointment
+router.post('/:id/feedback', [
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+    body('feedback').optional().isLength({ max: 500 }).withMessage('Feedback cannot be more than 500 characters'),
+    body('customerPhone').matches(/^[6-9]\d{9}$/).withMessage('Valid customer phone number is required')
+], handleValidationErrors, async (req, res) => {
+    try {
+        const { rating, feedback, customerPhone } = req.body;
+        const appointmentId = req.params.id;
+
+        // Find the appointment
+        const appointment = await Appointment.findById(appointmentId)
+            .populate('customer', 'phone name');
+
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Appointment not found'
+            });
+        }
+
+        // Verify the customer phone matches
+        if (appointment.customer.phone !== customerPhone) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to provide feedback for this appointment'
+            });
+        }
+
+        // Check if appointment is completed
+        if (appointment.status !== 'completed') {
+            return res.status(400).json({
+                success: false,
+                message: 'Can only provide feedback for completed appointments'
+            });
+        }
+
+        // Update appointment with feedback
+        appointment.rating = rating;
+        appointment.feedback = feedback || '';
+        await appointment.save();
+
+        res.json({
+            success: true,
+            message: 'Feedback submitted successfully',
+            data: {
+                appointmentId: appointment._id,
+                rating: appointment.rating,
+                feedback: appointment.feedback
+            }
+        });
+    } catch (error) {
+        console.error('Submit feedback error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error submitting feedback'
+        });
+    }
+});
+
+// Get feedback for display
+router.get('/feedback/all', [
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
+], handleValidationErrors, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        // Get appointments with feedback
+        const appointments = await Appointment.find({
+            rating: { $exists: true, $ne: null },
+            status: 'completed'
+        })
+            .populate('customer', 'name phone')
+            .populate('employee', 'name role')
+            .sort({ updatedAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .select('rating feedback services appointmentDate appointmentTime totalAmount');
+
+        // Get total count
+        const totalFeedback = await Appointment.countDocuments({
+            rating: { $exists: true, $ne: null },
+            status: 'completed'
+        });
+
+        const totalPages = Math.ceil(totalFeedback / limit);
+
+        res.json({
+            success: true,
+            data: {
+                feedback: appointments,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalFeedback,
+                    hasNext: page < totalPages,
+                    hasPrev: page > 1
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Get feedback error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error fetching feedback'
+        });
+    }
+});
+
 module.exports = router;

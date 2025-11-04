@@ -14,6 +14,8 @@ import CustomerManagement from './pages/CustomerManagement';
 import EmployeeManagement from './pages/EmployeeManagement';
 import BillingManagement from './pages/BillingManagement';
 import ServiceManagement from './pages/ServiceManagement';
+import FeedbackForm from './pages/FeedbackForm';
+import FeedbackManagement from './pages/FeedbackManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -48,6 +50,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<><Navbar /><Home /></>} />
             <Route path="/appointments" element={<><Navbar /><Appointments /></>} />
+            <Route path="/feedback/:appointmentId" element={<FeedbackForm />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             
             {/* Protected Admin Routes */}
@@ -79,6 +82,11 @@ function App() {
             <Route path="/admin/services" element={
               <ProtectedRoute>
                 <ServiceManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/feedback" element={
+              <ProtectedRoute>
+                <FeedbackManagement />
               </ProtectedRoute>
             } />
           </Routes>

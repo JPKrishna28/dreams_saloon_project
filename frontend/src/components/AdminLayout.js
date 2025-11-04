@@ -10,7 +10,8 @@ import {
   LogOut as LogOutIcon, 
   Menu as MenuIcon, 
   X as XIcon,
-  Scissors as ScissorsIcon
+  Scissors as ScissorsIcon,
+  MessageSquare as MessageSquareIcon
 } from 'lucide-react';
 
 const AdminLayout = ({ children }) => {
@@ -29,6 +30,7 @@ const AdminLayout = ({ children }) => {
     { name: 'Appointments', href: '/admin/appointments', icon: CalendarIcon },
     { name: 'Services', href: '/admin/services', icon: ScissorsIcon },
     { name: 'Customers', href: '/admin/customers', icon: UsersIcon },
+    { name: 'Feedback', href: '/admin/feedback', icon: MessageSquareIcon },
     
   ];
 
