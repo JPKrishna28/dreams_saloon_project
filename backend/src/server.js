@@ -16,29 +16,13 @@ const serviceRoutes = require('./routes/serviceRoutes');
 
 const app = express();
 
-// CORS configuration
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://dreams-saloon-project.vercel.app',
-    process.env.FRONTEND_URL
-].filter(Boolean);
-
-// Middleware
+// CORS configuration - More permissive for debugging
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or Postman)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        
-        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-        return callback(new Error(msg), false);
-    },
+    origin: true, // Allow all origins temporarily for debugging
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    optionsSuccessStatus: 200
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -60,6 +44,16 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch((error) => {
     console.error('MongoDB connection error:', error);
     process.exit(1);
+});
+
+// Handle preflight requests explicitly
+app.options('*', (req, res) => {
+    console.log('Preflight request for:', req.path);
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(200);
 });
 
 // Routes

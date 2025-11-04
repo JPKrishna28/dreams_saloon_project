@@ -93,23 +93,27 @@ router.get('/', [
 // Get appointment by ID
 router.get('/:id', async (req, res) => {
     try {
+        console.log('GET appointment request for ID:', req.params.id);
+        console.log('Origin:', req.headers.origin);
+        console.log('User-Agent:', req.headers['user-agent']);
+        
         const appointment = await Appointment.findById(req.params.id)
             .populate('customer', 'name phone email totalVisits')
             .populate('employee', 'name role specializations')
             .select('-__v');
 
         if (!appointment) {
+            console.log('Appointment not found for ID:', req.params.id);
             return res.status(404).json({
                 success: false,
                 message: 'Appointment not found'
             });
         }
 
+        console.log('Appointment found successfully');
         res.json({
             success: true,
-            data: {
-                appointment
-            }
+            data: appointment
         });
     } catch (error) {
         console.error('Get appointment error:', error);
