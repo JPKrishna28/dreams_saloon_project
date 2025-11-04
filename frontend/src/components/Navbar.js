@@ -19,27 +19,46 @@ const Navbar = () => {
     return location.pathname === href;
   };
 
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      // Get navbar height to offset scroll position
+      const navbar = document.querySelector('.navbar');
+      const navbarHeight = navbar ? navbar.offsetHeight : 80; // fallback to 80px
+      
+      // Calculate position with offset
+      const elementPosition = element.offsetTop - navbarHeight - 20; // 20px extra padding
+      
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      });
+      
+      console.log('Scrolled to section:', sectionId, 'Position:', elementPosition);
+    } else {
+      console.log('Element not found:', sectionId);
+    }
+  };
+
   const handleNavClick = (href, itemName) => {
     if (href.startsWith('#')) {
       // Handle hash links for scrolling to sections
       const sectionId = href.substring(1);
+      
+      console.log('Navbar click:', { href, sectionId, currentPath: location.pathname });
       
       // If we're not on the home page, navigate to home first
       if (location.pathname !== '/') {
         navigate('/');
         // Wait for navigation to complete, then scroll
         setTimeout(() => {
-          const element = document.getElementById(sectionId);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 100);
+          scrollToSection(sectionId);
+        }, 300);
       } else {
         // We're already on home page, just scroll
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        setTimeout(() => {
+          scrollToSection(sectionId);
+        }, 10); // Small delay to ensure DOM is ready
       }
       
       // Close mobile menu if open
