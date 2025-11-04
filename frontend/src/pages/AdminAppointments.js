@@ -12,9 +12,6 @@ import {
   Plus as PlusIcon,
   Search as SearchIcon,
   Filter as FilterIcon,
-  Share as ShareIcon,
-  MessageSquare as MessageSquareIcon,
-  MessageCircle as MessageCircleIcon,
   QrCode as QrCodeIcon
 } from 'lucide-react';
 import { appointmentAPI } from '../services/api';
@@ -148,38 +145,6 @@ const AdminAppointments = () => {
       document.body.removeChild(textArea);
       toast.success('Feedback link copied to clipboard!');
     });
-  };
-
-  // Send feedback link via SMS
-  const sendFeedbackSMS = async (appointment) => {
-    try {
-      const response = await appointmentAPI.sendFeedbackSMS(appointment._id, 'sms');
-      
-      if (response.data.success) {
-        toast.success('Feedback link sent via SMS!');
-      } else {
-        toast.error('Failed to send SMS');
-      }
-    } catch (error) {
-      console.error('Error sending SMS:', error);
-      toast.error('Error sending SMS');
-    }
-  };
-
-  // Send feedback link via WhatsApp
-  const sendFeedbackWhatsApp = async (appointment) => {
-    try {
-      const response = await appointmentAPI.sendFeedbackSMS(appointment._id, 'whatsapp');
-      
-      if (response.data.success) {
-        toast.success('Feedback link sent via WhatsApp!');
-      } else {
-        toast.error('Failed to send WhatsApp message');
-      }
-    } catch (error) {
-      console.error('Error sending WhatsApp:', error);
-      toast.error('Error sending WhatsApp message');
-    }
   };
 
   // Generate and display QR code
@@ -417,36 +382,13 @@ const AdminAppointments = () => {
                           </button>
                         )}
                         {appointment.status === 'completed' && (
-                          <>
-                            <button
-                              onClick={() => sendFeedbackLink(appointment)}
-                              className="text-purple-600 hover:text-purple-900 mr-2"
-                              title="Copy Feedback Link"
-                            >
-                              <ShareIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => sendFeedbackSMS(appointment)}
-                              className="text-blue-600 hover:text-blue-900 mr-2"
-                              title="Send SMS"
-                            >
-                              <MessageSquareIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => sendFeedbackWhatsApp(appointment)}
-                              className="text-green-600 hover:text-green-900 mr-2"
-                              title="Send WhatsApp"
-                            >
-                              <MessageCircleIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => generateQRCode(appointment)}
-                              className="text-orange-600 hover:text-orange-900 mr-2"
-                              title="Generate QR Code"
-                            >
-                              <QrCodeIcon className="h-4 w-4" />
-                            </button>
-                          </>
+                          <button
+                            onClick={() => generateQRCode(appointment)}
+                            className="text-orange-600 hover:text-orange-900 mr-2"
+                            title="Generate QR Code"
+                          >
+                            <QrCodeIcon className="h-4 w-4" />
+                          </button>
                         )}
                         <button
                           onClick={() => deleteAppointment(appointment._id)}
