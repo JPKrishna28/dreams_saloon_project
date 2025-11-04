@@ -82,6 +82,8 @@ export const appointmentAPI = {
   getServicePricing: () => api.get('/appointments/services/pricing'),
   submitFeedback: (id, data) => api.post(`/appointments/${id}/feedback`, data),
   getAllFeedback: (params) => api.get('/appointments/feedback/all', { params }),
+  sendFeedbackSMS: (id, method = 'sms') => api.post(`/appointments/send-feedback-sms/${id}`, { method }),
+  generateQR: (id, printable = false) => api.get(`/appointments/generate-qr/${id}`, { params: { printable } }),
 };
 
 // Service API

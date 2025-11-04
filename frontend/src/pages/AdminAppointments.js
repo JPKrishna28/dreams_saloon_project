@@ -11,7 +11,11 @@ import {
   Trash2 as TrashIcon,
   Plus as PlusIcon,
   Search as SearchIcon,
-  Filter as FilterIcon
+  Filter as FilterIcon,
+  Share as ShareIcon,
+  MessageSquare as MessageSquareIcon,
+  MessageCircle as MessageCircleIcon,
+  QrCode as QrCodeIcon
 } from 'lucide-react';
 import { appointmentAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -64,6 +68,40 @@ const AdminAppointments = () => {
       
       if (response.data.success) {
         toast.success(`Appointment ${newStatus} successfully`);
+        
+        // If appointment is completed, automatically show feedback link
+        if (newStatus === 'completed') {
+          const appointment = appointments.find(apt => apt._id === appointmentId);
+          if (appointment) {
+            const feedbackUrl = `${window.location.origin}/feedback?appointment=${appointmentId}&phone=${appointment.customerInfo.phone}`;
+            
+            // Show feedback link in a more prominent way
+            toast.success(
+              `Appointment completed! Feedback link: ${feedbackUrl}`,
+              {
+                duration: 10000, // Show for 10 seconds
+                style: {
+                  maxWidth: '500px'
+                }
+              }
+            );
+            
+            // Also copy to clipboard automatically
+            navigator.clipboard.writeText(feedbackUrl).then(() => {
+              toast.success('Feedback link also copied to clipboard!', { duration: 3000 });
+            }).catch(() => {
+              // Fallback for older browsers
+              const textArea = document.createElement('textarea');
+              textArea.value = feedbackUrl;
+              document.body.appendChild(textArea);
+              textArea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textArea);
+              toast.success('Feedback link also copied to clipboard!', { duration: 3000 });
+            });
+          }
+        }
+        
         fetchAppointments(); // Refresh the list
       } else {
         toast.error('Failed to update appointment');
@@ -90,6 +128,78 @@ const AdminAppointments = () => {
         console.error('Error deleting appointment:', error);
         toast.error('Error deleting appointment');
       }
+    }
+  };
+
+  // Send feedback link to customer
+  const sendFeedbackLink = (appointment) => {
+    const feedbackUrl = `${window.location.origin}/feedback?appointment=${appointment._id}&phone=${appointment.customerInfo.phone}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(feedbackUrl).then(() => {
+      toast.success('Feedback link copied to clipboard!');
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = feedbackUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast.success('Feedback link copied to clipboard!');
+    });
+  };
+
+  // Send feedback link via SMS
+  const sendFeedbackSMS = async (appointment) => {
+    try {
+      const response = await appointmentAPI.sendFeedbackSMS(appointment._id, 'sms');
+      
+      if (response.data.success) {
+        toast.success('Feedback link sent via SMS!');
+      } else {
+        toast.error('Failed to send SMS');
+      }
+    } catch (error) {
+      console.error('Error sending SMS:', error);
+      toast.error('Error sending SMS');
+    }
+  };
+
+  // Send feedback link via WhatsApp
+  const sendFeedbackWhatsApp = async (appointment) => {
+    try {
+      const response = await appointmentAPI.sendFeedbackSMS(appointment._id, 'whatsapp');
+      
+      if (response.data.success) {
+        toast.success('Feedback link sent via WhatsApp!');
+      } else {
+        toast.error('Failed to send WhatsApp message');
+      }
+    } catch (error) {
+      console.error('Error sending WhatsApp:', error);
+      toast.error('Error sending WhatsApp message');
+    }
+  };
+
+  // Generate and display QR code
+  const generateQRCode = async (appointment) => {
+    try {
+      const response = await appointmentAPI.generateQR(appointment._id, true);
+      
+      if (response.data.success) {
+        // Open QR code in new window for printing
+        const newWindow = window.open('', '_blank');
+        newWindow.document.write(response.data.data.printableHTML);
+        newWindow.document.close();
+        
+        toast.success('QR code generated! Check the new window to print.');
+      } else {
+        toast.error('Failed to generate QR code');
+      }
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast.error('Error generating QR code');
     }
   };
 
@@ -305,6 +415,38 @@ const AdminAppointments = () => {
                           >
                             <CheckCircleIcon className="h-4 w-4" />
                           </button>
+                        )}
+                        {appointment.status === 'completed' && (
+                          <>
+                            <button
+                              onClick={() => sendFeedbackLink(appointment)}
+                              className="text-purple-600 hover:text-purple-900 mr-2"
+                              title="Copy Feedback Link"
+                            >
+                              <ShareIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => sendFeedbackSMS(appointment)}
+                              className="text-blue-600 hover:text-blue-900 mr-2"
+                              title="Send SMS"
+                            >
+                              <MessageSquareIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => sendFeedbackWhatsApp(appointment)}
+                              className="text-green-600 hover:text-green-900 mr-2"
+                              title="Send WhatsApp"
+                            >
+                              <MessageCircleIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => generateQRCode(appointment)}
+                              className="text-orange-600 hover:text-orange-900 mr-2"
+                              title="Generate QR Code"
+                            >
+                              <QrCodeIcon className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
                         <button
                           onClick={() => deleteAppointment(appointment._id)}

@@ -7,6 +7,8 @@ const Employee = require('../models/Employee');
 const Service = require('../models/Service');
 const { authenticateAdmin } = require('../middleware/authMiddleware');
 const { handleValidationErrors } = require('../middleware/validation');
+const smsService = require('../../services/smsService');
+const qrCodeService = require('../../services/qrCodeService');
 
 const router = express.Router();
 
@@ -805,6 +807,121 @@ router.get('/feedback/all', [
         res.status(500).json({
             success: false,
             message: 'Server error fetching feedback'
+        });
+    }
+});
+
+// Send feedback link via SMS
+router.post('/send-feedback-sms/:id', authenticateAdmin, async (req, res) => {
+    try {
+        const appointmentId = req.params.id;
+        const { method = 'sms' } = req.body; // 'sms' or 'whatsapp'
+
+        const appointment = await Appointment.findById(appointmentId)
+            .populate('customer', 'name phone email');
+
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Appointment not found'
+            });
+        }
+
+        if (appointment.status !== 'completed') {
+            return res.status(400).json({
+                success: false,
+                message: 'Can only send feedback links for completed appointments'
+            });
+        }
+
+        let result;
+        if (method === 'whatsapp') {
+            result = await smsService.sendWhatsAppFeedbackLink(
+                appointment.customerInfo.phone,
+                appointmentId,
+                appointment.customerInfo.name
+            );
+        } else {
+            result = await smsService.sendFeedbackLink(
+                appointment.customerInfo.phone,
+                appointmentId,
+                appointment.customerInfo.name
+            );
+        }
+
+        if (result.success) {
+            res.json({
+                success: true,
+                message: result.message,
+                data: result.mockData
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: result.message
+            });
+        }
+    } catch (error) {
+        console.error('Send feedback SMS error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error sending feedback link'
+        });
+    }
+});
+
+// Generate QR code for feedback link
+router.get('/generate-qr/:id', authenticateAdmin, async (req, res) => {
+    try {
+        const appointmentId = req.params.id;
+        const { printable = false } = req.query;
+
+        const appointment = await Appointment.findById(appointmentId)
+            .populate('customer', 'name phone email');
+
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Appointment not found'
+            });
+        }
+
+        let result;
+        if (printable === 'true') {
+            result = await qrCodeService.generatePrintableQR(
+                appointmentId,
+                appointment.customerInfo.phone,
+                appointment.customerInfo.name
+            );
+        } else {
+            result = await qrCodeService.generateFeedbackQR(
+                appointmentId,
+                appointment.customerInfo.phone,
+                appointment.customerInfo.name
+            );
+        }
+
+        if (result.success) {
+            res.json({
+                success: true,
+                message: result.message,
+                data: {
+                    qrCodeDataURL: result.qrCodeDataURL,
+                    feedbackUrl: result.feedbackUrl,
+                    printableHTML: result.printableHTML
+                }
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: result.message
+            });
+        }
+    } catch (error) {
+        console.error('Generate QR code error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error generating QR code'
         });
     }
 });
