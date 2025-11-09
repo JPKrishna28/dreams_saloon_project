@@ -5,7 +5,6 @@ import {
   Home as HomeIcon, 
   Users as UsersIcon, 
   Calendar as CalendarIcon, 
-  CreditCard as CreditCardIcon, 
   Users as UserGroupIcon, 
   LogOut as LogOutIcon, 
   Menu as MenuIcon, 
