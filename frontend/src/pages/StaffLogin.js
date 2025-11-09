@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { authAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import {
   User as UserIcon,
@@ -38,39 +39,27 @@ const StaffLogin = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/staff/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+      const response = await authAPI.staffLogin(formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      if (data.success) {
+      if (response.data.success) {
         // Store token and user data
-        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('token', response.data.data.token);
         
         // Update auth context with staff data
         login({
-          ...data.data.staff,
-          token: data.data.token,
+          user: response.data.data.staff,
+          token: response.data.data.token,
           userType: 'staff'
         });
 
         toast.success('Login successful!');
         navigate('/staff/dashboard');
       } else {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(response.data.message || 'Login failed');
       }
     } catch (error) {
       console.error('Staff login error:', error);
-      toast.error(error.message || 'Login failed. Please check your credentials.');
+      toast.error(error.response?.data?.message || error.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
