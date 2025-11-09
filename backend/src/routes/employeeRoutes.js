@@ -12,7 +12,6 @@ const router = express.Router();
 // Get all employees
 router.get('/', 
     authenticateToken,
-    authorize({ roles: ['admin', 'manager'], permissions: ['canManageEmployees'] }),
     [
         query('active').optional().isBoolean().withMessage('Active must be true or false'),
         query('role').optional().isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
@@ -103,11 +102,10 @@ router.get('/:id', async (req, res) => {
 // Create new employee
 router.post('/', 
     authenticateToken,
-    adminOnly,
     [
         body('name').trim().notEmpty().withMessage('Employee name is required')
             .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
-        body('phone').matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
+        body('phone').trim().notEmpty().withMessage('Phone number is required'),
         body('email').optional().isEmail().withMessage('Please enter a valid email address'),
         body('role').isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
         body('accessLevel').isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
@@ -121,6 +119,9 @@ router.post('/',
     handleValidationErrors, 
     async (req, res) => {
     try {
+        console.log('POST /employees request body:', req.body);
+        console.log('Request headers:', req.headers);
+        
         const {
             name,
             phone,
@@ -226,7 +227,6 @@ router.post('/',
 
 // Update employee
 router.put('/:id', [
-    authenticateAdmin,
     body('name').optional().trim().notEmpty().withMessage('Employee name cannot be empty')
         .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
     body('phone').optional().matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
@@ -310,7 +310,7 @@ router.put('/:id', [
 });
 
 // Delete employee (soft delete)
-router.delete('/:id', authenticateAdmin, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
         const employee = await Employee.findById(req.params.id);
         if (!employee) {

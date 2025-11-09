@@ -73,6 +73,9 @@ const StaffManagement = () => {
     e.preventDefault();
     
     try {
+      // Log the data being sent for debugging
+      console.log('Sending staff data:', staffData);
+      
       let response;
       if (editingStaff) {
         response = await staffAPI.update(editingStaff._id, staffData);
@@ -88,7 +91,11 @@ const StaffManagement = () => {
       }
     } catch (error) {
       console.error('Error saving staff:', error);
-      toast.error('Error saving staff data');
+      console.error('Error response:', error.response?.data);
+      
+      // Show more specific error message
+      const errorMessage = error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Error saving staff data';
+      toast.error(errorMessage);
     }
   };
 
