@@ -265,12 +265,14 @@ router.put('/:id', [
             phone,
             email,
             role,
+            accessLevel,
             specializations,
             experience,
             workingHours,
             workingDays,
             salary,
             commission,
+            permissions,
             isActive
         } = req.body;
 
@@ -295,22 +297,6 @@ router.put('/:id', [
         }
 
         // Update employee fields
-        const {
-            name,
-            phone,
-            email,
-            role,
-            accessLevel,
-            specializations,
-            experience,
-            workingHours,
-            workingDays,
-            salary,
-            commission,
-            permissions,
-            isActive
-        } = req.body;
-
         console.log('Updating employee with ID:', req.params.id);
         console.log('Update data:', { name, role, accessLevel, phone, email });
 
