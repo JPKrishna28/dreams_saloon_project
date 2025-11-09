@@ -5,8 +5,6 @@ import {
   Edit as EditIcon,
   Trash2 as TrashIcon,
   Shield as ShieldIcon,
-  CheckCircle as CheckCircleIcon,
-  XCircle as XCircleIcon,
   Search as SearchIcon,
   Filter as FilterIcon,
   Crown as CrownIcon,
@@ -33,9 +31,6 @@ const StaffManagement = () => {
     workingDays: [],
     salary: '',
     commission: 10,
-    isLoginEnabled: false,
-    username: '',
-    password: '',
     permissions: {
       canManageAppointments: false,
       canManageCustomers: false,
@@ -133,9 +128,6 @@ const StaffManagement = () => {
       workingDays: [],
       salary: '',
       commission: 10,
-      isLoginEnabled: false,
-      username: '',
-      password: '',
       permissions: {
         canManageAppointments: false,
         canManageCustomers: false,
@@ -155,7 +147,6 @@ const StaffManagement = () => {
   const handleEdit = (staffMember) => {
     setStaffData({
       ...staffMember,
-      password: '', // Don't show existing password
       permissions: staffMember.permissions || {}
     });
     setEditingStaff(staffMember);
@@ -219,8 +210,6 @@ const StaffManagement = () => {
       role,
       accessLevel: newAccessLevel,
       permissions: newPermissions,
-      // Allow login for any role, not just specific ones
-      isLoginEnabled: prev.isLoginEnabled || false
     }));
   };
 
@@ -325,9 +314,6 @@ const StaffManagement = () => {
                   Contact
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Login Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -366,20 +352,6 @@ const StaffManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div>{member.phone}</div>
                     <div className="text-gray-500">{member.email || 'No email'}</div>
-                  </td>
-                  
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {member.loginCredentials?.isLoginEnabled ? (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                        <CheckCircleIcon className="h-3 w-3 mr-1" />
-                        Enabled
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        <XCircleIcon className="h-3 w-3 mr-1" />
-                        Disabled
-                      </span>
-                    )}
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -482,37 +454,6 @@ const StaffManagement = () => {
                     ))}
                   </select>
 
-                  {/* Login Credentials */}
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={staffData.isLoginEnabled}
-                        onChange={(e) => setStaffData({...staffData, isLoginEnabled: e.target.checked})}
-                        className="mr-2"
-                      />
-                      Enable Login Access
-                    </label>
-                    
-                    {staffData.isLoginEnabled && (
-                        <>
-                          <input
-                            type="text"
-                            placeholder="Username"
-                            value={staffData.username}
-                            onChange={(e) => setStaffData({...staffData, username: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                          <input
-                            type="password"
-                            placeholder="Password"
-                            value={staffData.password}
-                            onChange={(e) => setStaffData({...staffData, password: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                        </>
-                      )}
-                  </div>
                 </div>
               </div>
 

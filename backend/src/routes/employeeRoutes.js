@@ -1,6 +1,5 @@
 const express = require('express');
 const { body, query } = require('express-validator');
-const bcrypt = require('bcrypt');
 const Employee = require('../models/Employee');
 const Appointment = require('../models/Appointment');
 const { authenticateAdmin } = require('../middleware/auth');
@@ -129,10 +128,7 @@ router.post('/',
             workingDays,
             salary,
             commission,
-            permissions,
-            isLoginEnabled,
-            username,
-            password
+            permissions
         } = req.body;
 
         console.log('Creating staff member:', { name, role, accessLevel });
@@ -144,17 +140,6 @@ router.post('/',
                 success: false,
                 message: 'Employee with this phone number already exists'
             });
-        }
-
-        // Check if username is unique (if provided)
-        if (username) {
-            const existingUsername = await Employee.findOne({ 'loginCredentials.username': username });
-            if (existingUsername) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Username already exists'
-                });
-            }
         }
 
         // Prepare employee data
@@ -182,21 +167,6 @@ router.post('/',
             }
         };
 
-        // Handle login credentials if needed
-        if (isLoginEnabled && username && password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            employeeData.loginCredentials = {
-                username,
-                password: hashedPassword,
-                isLoginEnabled: true
-            };
-        } else {
-            employeeData.loginCredentials = {
-                isLoginEnabled: false
-                // Don't include username if empty to avoid unique constraint issues
-            };
-        }
-
         // Create new employee
         console.log('Creating employee with data:', employeeData);
         const employee = new Employee(employeeData);
@@ -204,16 +174,10 @@ router.post('/',
 
         console.log('Employee saved successfully:', employee._id);
 
-        // Remove password from response
-        const responseEmployee = employee.toObject();
-        if (responseEmployee.loginCredentials && responseEmployee.loginCredentials.password) {
-            delete responseEmployee.loginCredentials.password;
-        }
-
         res.status(201).json({
             success: true,
             message: 'Employee added successfully',
-            data: responseEmployee
+            data: employee
         });
     } catch (error) {
         console.error('Create employee error:', error);

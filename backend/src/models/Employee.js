@@ -47,26 +47,6 @@ const employeeSchema = new mongoose.Schema({
         canManageFeedback: { type: Boolean, default: false },
         canAccessSettings: { type: Boolean, default: false }
     },
-    loginCredentials: {
-        username: {
-            type: String,
-            unique: true,
-            sparse: true, // Only required for admin/manager roles
-            validate: {
-                validator: function(v) {
-                    // Only validate if username is provided (not empty/null)
-                    return !v || v.length >= 3;
-                },
-                message: 'Username must be at least 3 characters long'
-            }
-        },
-        password: {
-            type: String,
-            minlength: 6
-        },
-        lastLogin: Date,
-        isLoginEnabled: { type: Boolean, default: false }
-    },
     specializations: [{
         type: String,
         enum: ['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']
