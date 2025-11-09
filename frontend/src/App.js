@@ -17,6 +17,7 @@ import ServiceManagement from './pages/ServiceManagement';
 import FeedbackForm from './pages/FeedbackForm';
 import FeedbackManagement from './pages/FeedbackManagement';
 import FeedbackPage from './pages/feedback/FeedbackPage';
+import StaffManagement from './pages/StaffManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -89,6 +90,11 @@ function App() {
             <Route path="/admin/feedback" element={
               <ProtectedRoute>
                 <FeedbackManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/staff" element={
+              <ProtectedRoute>
+                <StaffManagement />
               </ProtectedRoute>
             } />
           </Routes>

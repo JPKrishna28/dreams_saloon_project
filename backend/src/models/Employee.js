@@ -22,8 +22,37 @@ const employeeSchema = new mongoose.Schema({
     role: {
         type: String,
         required: [true, 'Role is required'],
-        enum: ['Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee'],
+        enum: ['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist'],
         default: 'Junior Barber'
+    },
+    // Admin/Staff specific fields
+    accessLevel: {
+        type: String,
+        enum: ['admin', 'manager', 'staff'],
+        default: 'staff'
+    },
+    permissions: {
+        canManageAppointments: { type: Boolean, default: false },
+        canManageCustomers: { type: Boolean, default: false },
+        canManageEmployees: { type: Boolean, default: false },
+        canManageServices: { type: Boolean, default: false },
+        canViewReports: { type: Boolean, default: false },
+        canManageBilling: { type: Boolean, default: false },
+        canManageFeedback: { type: Boolean, default: false },
+        canAccessSettings: { type: Boolean, default: false }
+    },
+    loginCredentials: {
+        username: {
+            type: String,
+            unique: true,
+            sparse: true // Only required for admin/manager roles
+        },
+        password: {
+            type: String,
+            minlength: 6
+        },
+        lastLogin: Date,
+        isLoginEnabled: { type: Boolean, default: false }
     },
     specializations: [{
         type: String,

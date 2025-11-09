@@ -1,5 +1,6 @@
 const express = require('express');
 const { body, query } = require('express-validator');
+const bcrypt = require('bcrypt');
 const Employee = require('../models/Employee');
 const Appointment = require('../models/Appointment');
 const { authenticateAdmin } = require('../middleware/auth');
@@ -10,7 +11,8 @@ const router = express.Router();
 // Get all employees
 router.get('/', [
     query('active').optional().isBoolean().withMessage('Active must be true or false'),
-    query('role').optional().isIn(['Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee']).withMessage('Invalid role'),
+    query('role').optional().isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
+    query('accessLevel').optional().isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
     query('specialization').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization')
 ], handleValidationErrors, async (req, res) => {
     try {
@@ -26,6 +28,11 @@ router.get('/', [
             query.role = req.query.role;
         }
 
+        // Filter by access level
+        if (req.query.accessLevel) {
+            query.accessLevel = req.query.accessLevel;
+        }
+
         // Filter by specialization
         if (req.query.specialization) {
             query.specializations = { $in: [req.query.specialization] };
@@ -33,14 +40,12 @@ router.get('/', [
 
         const employees = await Employee.find(query)
             .sort({ createdAt: -1 })
-            .select('-__v');
+            .select('-loginCredentials.password -__v'); // Don't send passwords
 
         res.json({
             success: true,
-            data: {
-                employees,
-                totalEmployees: employees.length
-            }
+            data: employees,
+            totalEmployees: employees.length
         });
     } catch (error) {
         console.error('Get employees error:', error);
@@ -96,11 +101,14 @@ router.post('/', [
         .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
     body('phone').matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
     body('email').optional().isEmail().withMessage('Please enter a valid email address'),
-    body('role').isIn(['Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee']).withMessage('Invalid role'),
-    body('specializations').isArray({ min: 1 }).withMessage('At least one specialization is required'),
-    body('specializations.*').isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization'),
+    body('role').isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
+    body('accessLevel').isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
+    body('specializations').optional().isArray().withMessage('Specializations must be an array'),
+    body('specializations.*').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization'),
     body('salary').optional().isFloat({ min: 0 }).withMessage('Salary must be a positive number'),
-    body('commission').optional().isFloat({ min: 0, max: 100 }).withMessage('Commission must be between 0 and 100')
+    body('commission').optional().isFloat({ min: 0, max: 100 }).withMessage('Commission must be between 0 and 100'),
+    body('username').optional().trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+    body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], handleValidationErrors, async (req, res) => {
     try {
         const {
@@ -108,13 +116,20 @@ router.post('/', [
             phone,
             email,
             role,
+            accessLevel,
             specializations,
             experience,
             workingHours,
             workingDays,
             salary,
-            commission
+            commission,
+            permissions,
+            isLoginEnabled,
+            username,
+            password
         } = req.body;
+
+        console.log('Creating staff member:', { name, role, accessLevel });
 
         // Check if employee with phone already exists
         const existingEmployee = await Employee.findOne({ phone });
@@ -125,37 +140,73 @@ router.post('/', [
             });
         }
 
-        // Create new employee
-        const employee = new Employee({
+        // Check if username is unique (if provided)
+        if (username) {
+            const existingUsername = await Employee.findOne({ 'loginCredentials.username': username });
+            if (existingUsername) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Username already exists'
+                });
+            }
+        }
+
+        // Prepare employee data
+        const employeeData = {
             name,
             phone,
             email,
             role,
-            specializations,
+            accessLevel: accessLevel || 'staff',
+            specializations: specializations || [],
             experience,
             workingHours,
-            workingDays,
+            workingDays: workingDays || [],
             salary,
-            commission
-        });
+            commission,
+            permissions: permissions || {
+                canManageAppointments: false,
+                canManageCustomers: false,
+                canManageEmployees: false,
+                canManageServices: false,
+                canViewReports: false,
+                canManageBilling: false,
+                canManageFeedback: false,
+                canAccessSettings: false
+            }
+        };
 
+        // Handle login credentials if needed
+        if (isLoginEnabled && username && password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            employeeData.loginCredentials = {
+                username,
+                password: hashedPassword,
+                isLoginEnabled: true
+            };
+        } else {
+            employeeData.loginCredentials = {
+                isLoginEnabled: false
+            };
+        }
+
+        // Create new employee
+        const employee = new Employee(employeeData);
         await employee.save();
+
+        // Remove password from response
+        const responseEmployee = employee.toObject();
+        if (responseEmployee.loginCredentials && responseEmployee.loginCredentials.password) {
+            delete responseEmployee.loginCredentials.password;
+        }
 
         res.status(201).json({
             success: true,
-            message: 'Employee created successfully',
-            data: {
-                employee
-            }
+            message: 'Employee added successfully',
+            data: responseEmployee
         });
     } catch (error) {
         console.error('Create employee error:', error);
-        if (error.code === 11000) {
-            return res.status(400).json({
-                success: false,
-                message: 'Employee with this phone number already exists'
-            });
-        }
         res.status(500).json({
             success: false,
             message: 'Server error creating employee'
