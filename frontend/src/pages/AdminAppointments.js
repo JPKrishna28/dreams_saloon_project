@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar as CalendarIcon, 
   Users as UsersIcon, 
   Clock as ClockIcon,
   Phone as PhoneIcon,
   CheckCircle as CheckCircleIcon,
-  AlertCircle as AlertCircleIcon,
-  Eye as EyeIcon,
-  Edit as EditIcon,
   Trash2 as TrashIcon,
-  Plus as PlusIcon,
   Search as SearchIcon,
-  Filter as FilterIcon,
   QrCode as QrCodeIcon
 } from 'lucide-react';
 import { appointmentAPI } from '../services/api';
@@ -25,7 +20,7 @@ const AdminAppointments = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch appointments
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       const params = {};
@@ -52,11 +47,11 @@ const AdminAppointments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, statusFilter]);
 
   useEffect(() => {
     fetchAppointments();
-  }, [selectedDate, statusFilter]);
+  }, [fetchAppointments]);
 
   // Update appointment status
   const updateAppointmentStatus = async (appointmentId, newStatus) => {
@@ -126,25 +121,6 @@ const AdminAppointments = () => {
         toast.error('Error deleting appointment');
       }
     }
-  };
-
-  // Send feedback link to customer
-  const sendFeedbackLink = (appointment) => {
-    const feedbackUrl = `${window.location.origin}/feedback?appointment=${appointment._id}&phone=${appointment.customerInfo.phone}`;
-    
-    // Copy to clipboard
-    navigator.clipboard.writeText(feedbackUrl).then(() => {
-      toast.success('Feedback link copied to clipboard!');
-    }).catch(() => {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = feedbackUrl;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      toast.success('Feedback link copied to clipboard!');
-    });
   };
 
   // Generate and display QR code
