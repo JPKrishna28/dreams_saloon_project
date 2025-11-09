@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Appointments from './pages/Appointments';
 import AdminLogin from './pages/AdminLogin';
+import StaffLogin from './pages/StaffLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminAppointments from './pages/AdminAppointments';
 import CustomerManagement from './pages/CustomerManagement';
@@ -18,6 +19,7 @@ import FeedbackForm from './pages/FeedbackForm';
 import FeedbackManagement from './pages/FeedbackManagement';
 import FeedbackPage from './pages/feedback/FeedbackPage';
 import StaffManagement from './pages/StaffManagement';
+import StaffDashboard from './pages/StaffDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -55,6 +57,7 @@ function App() {
             <Route path="/feedback/:appointmentId" element={<FeedbackForm />} />
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/staff/login" element={<StaffLogin />} />
             
             {/* Protected Admin Routes */}
             <Route path="/admin" element={
@@ -95,6 +98,11 @@ function App() {
             <Route path="/admin/staff" element={
               <ProtectedRoute>
                 <StaffManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/staff/dashboard" element={
+              <ProtectedRoute>
+                <StaffDashboard />
               </ProtectedRoute>
             } />
           </Routes>

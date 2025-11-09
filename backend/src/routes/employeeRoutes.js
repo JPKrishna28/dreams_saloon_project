@@ -4,17 +4,23 @@ const bcrypt = require('bcrypt');
 const Employee = require('../models/Employee');
 const Appointment = require('../models/Appointment');
 const { authenticateAdmin } = require('../middleware/auth');
+const { authenticateToken, authorize, adminOnly, managerOrAdmin, staffAccess } = require('../middleware/authMiddleware');
 const { handleValidationErrors } = require('../middleware/validation');
 
 const router = express.Router();
 
 // Get all employees
-router.get('/', [
-    query('active').optional().isBoolean().withMessage('Active must be true or false'),
-    query('role').optional().isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
-    query('accessLevel').optional().isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
-    query('specialization').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization')
-], handleValidationErrors, async (req, res) => {
+router.get('/', 
+    authenticateToken,
+    authorize({ roles: ['admin', 'manager'], permissions: ['canManageEmployees'] }),
+    [
+        query('active').optional().isBoolean().withMessage('Active must be true or false'),
+        query('role').optional().isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
+        query('accessLevel').optional().isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
+        query('specialization').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization')
+    ], 
+    handleValidationErrors, 
+    async (req, res) => {
     try {
         let query = {};
         
@@ -95,21 +101,25 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new employee
-router.post('/', [
-    authenticateAdmin,
-    body('name').trim().notEmpty().withMessage('Employee name is required')
-        .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
-    body('phone').matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
-    body('email').optional().isEmail().withMessage('Please enter a valid email address'),
-    body('role').isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
-    body('accessLevel').isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
-    body('specializations').optional().isArray().withMessage('Specializations must be an array'),
-    body('specializations.*').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization'),
-    body('salary').optional().isFloat({ min: 0 }).withMessage('Salary must be a positive number'),
-    body('commission').optional().isFloat({ min: 0, max: 100 }).withMessage('Commission must be between 0 and 100'),
-    body('username').optional().trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
-    body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
-], handleValidationErrors, async (req, res) => {
+router.post('/', 
+    authenticateToken,
+    adminOnly,
+    [
+        body('name').trim().notEmpty().withMessage('Employee name is required')
+            .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
+        body('phone').matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
+        body('email').optional().isEmail().withMessage('Please enter a valid email address'),
+        body('role').isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
+        body('accessLevel').isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
+        body('specializations').optional().isArray().withMessage('Specializations must be an array'),
+        body('specializations.*').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization'),
+        body('salary').optional().isFloat({ min: 0 }).withMessage('Salary must be a positive number'),
+        body('commission').optional().isFloat({ min: 0, max: 100 }).withMessage('Commission must be between 0 and 100'),
+        body('username').optional().trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+        body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+    ], 
+    handleValidationErrors, 
+    async (req, res) => {
     try {
         const {
             name,

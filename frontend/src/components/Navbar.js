@@ -125,13 +125,21 @@ const Navbar = () => {
               <span>Call Now</span>
             </a>
 
-            {/* Admin Login */}
-            <Link
-              to="/admin/login"
-              className="text-sm text-gray-600 hover:text-primary-red"
-            >
-              Admin Login
-            </Link>
+            {/* Login Links */}
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/admin/login"
+                className="text-sm text-gray-600 hover:text-primary-red"
+              >
+                Admin Login
+              </Link>
+              <Link
+                to="/staff/login"
+                className="text-sm text-gray-600 hover:text-primary-red"
+              >
+                Staff Login
+              </Link>
+            </div>
           </div>
 
           {/* Mobile menu button */}

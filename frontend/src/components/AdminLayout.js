@@ -26,13 +26,20 @@ const AdminLayout = ({ children }) => {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: HomeIcon },
-    { name: 'Appointments', href: '/admin/appointments', icon: CalendarIcon },
-    { name: 'Services', href: '/admin/services', icon: ScissorsIcon },
-    { name: 'Customers', href: '/admin/customers', icon: UsersIcon },
-    { name: 'Feedback', href: '/admin/feedback', icon: MessageSquareIcon },
-    
+    { name: 'Dashboard', href: '/admin', icon: HomeIcon, roles: ['admin', 'manager', 'staff'] },
+    { name: 'Appointments', href: '/admin/appointments', icon: CalendarIcon, roles: ['admin', 'manager', 'staff'] },
+    { name: 'Services', href: '/admin/services', icon: ScissorsIcon, roles: ['admin', 'manager'] },
+    { name: 'Customers', href: '/admin/customers', icon: UsersIcon, roles: ['admin', 'manager', 'staff'] },
+    { name: 'Staff Management', href: '/admin/staff', icon: UserGroupIcon, roles: ['admin'] },
+    { name: 'Employees', href: '/admin/employees', icon: UsersIcon, roles: ['admin', 'manager'] },
+    { name: 'Billing', href: '/admin/billing', icon: CreditCardIcon, roles: ['admin', 'manager', 'staff'] },
+    { name: 'Feedback', href: '/admin/feedback', icon: MessageSquareIcon, roles: ['admin', 'manager'] },
   ];
+
+  // Filter navigation based on user role
+  const filteredNavigation = navigation.filter(item => 
+    item.roles.includes(user?.role?.toLowerCase() || 'admin')
+  );
 
   const isActivePage = (href) => {
     if (href === '/admin') {
@@ -98,7 +105,7 @@ const AdminLayout = ({ children }) => {
         {/* Navigation */}
         <nav className="mt-6 px-3">
           <div className="space-y-1">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -147,7 +154,7 @@ const AdminLayout = ({ children }) => {
             {/* Page Title */}
             <div className="flex-1 md:ml-0 ml-4">
               <h2 className="text-xl font-semibold text-gray-900">
-                {navigation.find(item => isActivePage(item.href))?.name || 'Admin Panel'}
+                {filteredNavigation.find(item => isActivePage(item.href))?.name || 'Admin Panel'}
               </h2>
             </div>
 
