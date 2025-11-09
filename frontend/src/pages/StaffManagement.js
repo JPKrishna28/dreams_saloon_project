@@ -219,7 +219,8 @@ const StaffManagement = () => {
       role,
       accessLevel: newAccessLevel,
       permissions: newPermissions,
-      isLoginEnabled: ['Admin', 'Manager', 'Receptionist'].includes(role)
+      // Allow login for any role, not just specific ones
+      isLoginEnabled: prev.isLoginEnabled || false
     }));
   };
 
@@ -482,19 +483,18 @@ const StaffManagement = () => {
                   </select>
 
                   {/* Login Credentials */}
-                  {staffData.accessLevel !== 'staff' && (
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={staffData.isLoginEnabled}
-                          onChange={(e) => setStaffData({...staffData, isLoginEnabled: e.target.checked})}
-                          className="mr-2"
-                        />
-                        Enable Login Access
-                      </label>
-                      
-                      {staffData.isLoginEnabled && (
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={staffData.isLoginEnabled}
+                        onChange={(e) => setStaffData({...staffData, isLoginEnabled: e.target.checked})}
+                        className="mr-2"
+                      />
+                      Enable Login Access
+                    </label>
+                    
+                    {staffData.isLoginEnabled && (
                         <>
                           <input
                             type="text"
@@ -512,8 +512,7 @@ const StaffManagement = () => {
                           />
                         </>
                       )}
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
