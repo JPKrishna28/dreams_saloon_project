@@ -106,15 +106,10 @@ router.post('/',
         body('name').trim().notEmpty().withMessage('Employee name is required')
             .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
         body('phone').trim().notEmpty().withMessage('Phone number is required'),
-        body('email').optional().isEmail().withMessage('Please enter a valid email address'),
+        body('email').trim().notEmpty().withMessage('Email is required')
+            .isEmail().withMessage('Please enter a valid email address'),
         body('role').isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
-        body('accessLevel').isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level'),
-        body('specializations').optional().isArray().withMessage('Specializations must be an array'),
-        body('specializations.*').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization'),
-        body('salary').optional().isFloat({ min: 0 }).withMessage('Salary must be a positive number'),
-        body('commission').optional().isFloat({ min: 0, max: 100 }).withMessage('Commission must be between 0 and 100'),
-        body('username').optional().trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
-        body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+        body('accessLevel').isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level')
     ], 
     handleValidationErrors, 
     async (req, res) => {
