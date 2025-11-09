@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   Star as StarIcon, 
@@ -34,16 +34,7 @@ const FeedbackPage = () => {
   const appointmentId = searchParams.get('appointment');
   const customerPhone = searchParams.get('phone');
 
-  useEffect(() => {
-    if (appointmentId) {
-      fetchAppointmentDetails();
-    } else {
-      setLoading(false);
-      toast.error('Invalid feedback link');
-    }
-  }, [appointmentId]);
-
-  const fetchAppointmentDetails = async () => {
+  const fetchAppointmentDetails = useCallback(async () => {
     try {
       const response = await appointmentAPI.getById(appointmentId);
       
@@ -67,7 +58,16 @@ const FeedbackPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [appointmentId, customerPhone]);
+
+  useEffect(() => {
+    if (appointmentId) {
+      fetchAppointmentDetails();
+    } else {
+      setLoading(false);
+      toast.error('Invalid feedback link');
+    }
+  }, [appointmentId, fetchAppointmentDetails]);
 
   const handleRatingClick = (rating) => {
     setFeedbackData(prev => ({ ...prev, rating }));

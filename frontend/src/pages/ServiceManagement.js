@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Plus as PlusIcon,
   Edit as EditIcon,
   Trash2 as TrashIcon,
   Search as SearchIcon,
-  Filter as FilterIcon,
   Eye as EyeIcon,
   EyeOff as EyeOffIcon,
   Scissors as ScissorsIcon,
   Clock as ClockIcon,
   DollarSign as DollarSignIcon,
-  Tag as TagIcon,
   Save as SaveIcon,
-  X as XIcon,
-  AlertCircle as AlertCircleIcon
+  X as XIcon
 } from 'lucide-react';
 import { serviceAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -44,7 +41,7 @@ const ServiceManagement = () => {
   const categories = ['Hair Care', 'Beard Care', 'Skin Care', 'Styling', 'Complete Package'];
 
   // Fetch services
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       setLoading(true);
       const params = {};
@@ -74,11 +71,11 @@ const ServiceManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, categoryFilter, statusFilter]);
 
   useEffect(() => {
     fetchServices();
-  }, [searchTerm, categoryFilter, statusFilter]);
+  }, [fetchServices]);
 
   // Handle form input changes
   const handleInputChange = (e) => {

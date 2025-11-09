@@ -4,9 +4,7 @@ import {
   UserPlus as UserPlusIcon,
   Edit as EditIcon,
   Trash2 as TrashIcon,
-  Eye as EyeIcon,
   Shield as ShieldIcon,
-  Key as KeyIcon,
   CheckCircle as CheckCircleIcon,
   XCircle as XCircleIcon,
   Search as SearchIcon,
@@ -52,8 +50,6 @@ const StaffManagement = () => {
 
   const roles = ['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist'];
   const accessLevels = ['admin', 'manager', 'staff'];
-  const specializations = ['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage'];
-  const workingDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   useEffect(() => {
     fetchStaff();
