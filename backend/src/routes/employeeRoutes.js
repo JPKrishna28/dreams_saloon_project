@@ -193,12 +193,16 @@ router.post('/',
         } else {
             employeeData.loginCredentials = {
                 isLoginEnabled: false
+                // Don't include username if empty to avoid unique constraint issues
             };
         }
 
         // Create new employee
+        console.log('Creating employee with data:', employeeData);
         const employee = new Employee(employeeData);
         await employee.save();
+
+        console.log('Employee saved successfully:', employee._id);
 
         // Remove password from response
         const responseEmployee = employee.toObject();
@@ -213,9 +217,35 @@ router.post('/',
         });
     } catch (error) {
         console.error('Create employee error:', error);
+        
+        // Handle validation errors specifically
+        if (error.name === 'ValidationError') {
+            const validationErrors = Object.values(error.errors).map(err => ({
+                field: err.path,
+                message: err.message,
+                value: err.value
+            }));
+            
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+        }
+        
+        // Handle duplicate key error (unique constraint)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            return res.status(400).json({
+                success: false,
+                message: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`
+            });
+        }
+        
         res.status(500).json({
             success: false,
-            message: 'Server error creating employee'
+            message: 'Server error creating employee',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });

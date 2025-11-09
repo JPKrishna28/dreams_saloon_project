@@ -11,7 +11,13 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Phone number is required'],
         unique: true,
-        match: [/^[6-9]\d{9}$/, 'Please enter a valid Indian mobile number']
+        validate: {
+            validator: function(v) {
+                // Accept various phone formats: 10-11 digits, can start with 0-9
+                return /^\d{10,11}$/.test(v);
+            },
+            message: 'Please enter a valid phone number (10-11 digits)'
+        }
     },
     email: {
         type: String,
@@ -45,7 +51,14 @@ const employeeSchema = new mongoose.Schema({
         username: {
             type: String,
             unique: true,
-            sparse: true // Only required for admin/manager roles
+            sparse: true, // Only required for admin/manager roles
+            validate: {
+                validator: function(v) {
+                    // Only validate if username is provided (not empty/null)
+                    return !v || v.length >= 3;
+                },
+                message: 'Username must be at least 3 characters long'
+            }
         },
         password: {
             type: String,
