@@ -48,10 +48,25 @@ const AdminDashboard = () => {
 
       // Mock billing stats since billing API was removed
       setBillingStats({
-        totalRevenue: 125000,
-        monthlyRevenue: 25000,
-        pendingPayments: 3500,
-        completedTransactions: 156
+        overview: { 
+          totalRevenue: 125000, 
+          totalBills: 156, 
+          avgBillAmount: 850 
+        },
+        paymentBreakdown: [
+          { _id: 'cash', totalAmount: 75000, count: 89 },
+          { _id: 'card', totalAmount: 35000, count: 45 },
+          { _id: 'upi', totalAmount: 15000, count: 22 }
+        ],
+        dailyRevenue: [
+          { date: '2025-11-01', revenue: 3500 },
+          { date: '2025-11-02', revenue: 4200 },
+          { date: '2025-11-03', revenue: 3800 },
+          { date: '2025-11-04', revenue: 4500 },
+          { date: '2025-11-05', revenue: 4100 },
+          { date: '2025-11-06', revenue: 3900 },
+          { date: '2025-11-07', revenue: 4300 }
+        ]
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -77,13 +92,13 @@ const AdminDashboard = () => {
   );
 
   // Prepare chart data
-  const serviceChartData = dashboardStats.popularServices.map(service => ({
+  const serviceChartData = (dashboardStats.popularServices || []).map(service => ({
     name: service._id,
     appointments: service.count,
     revenue: service.revenue
   }));
 
-  const paymentChartData = billingStats.paymentBreakdown.map(payment => ({
+  const paymentChartData = (billingStats.paymentBreakdown || []).map(payment => ({
     name: payment._id.toUpperCase(),
     value: payment.totalAmount,
     count: payment.count
