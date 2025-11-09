@@ -8,7 +8,8 @@ import {
   Search as SearchIcon,
   Filter as FilterIcon,
   Crown as CrownIcon,
-  User as UserIcon
+  User as UserIcon,
+  X as XIcon
 } from 'lucide-react';
 import { staffAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -393,7 +394,7 @@ const StaffManagement = () => {
                   onClick={() => setShowModal(false)}
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  <XCircleIcon className="h-6 w-6" />
+                  <XIcon className="h-6 w-6" />
                 </button>
               </div>
 
