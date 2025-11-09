@@ -75,11 +75,15 @@ const StaffManagement = () => {
     try {
       // Log the data being sent for debugging
       console.log('Sending staff data:', staffData);
+      console.log('editingStaff:', editingStaff);
+      console.log('Is editing?', !!editingStaff);
       
       let response;
       if (editingStaff) {
+        console.log('Calling UPDATE with ID:', editingStaff._id);
         response = await staffAPI.update(editingStaff._id, staffData);
       } else {
+        console.log('Calling CREATE (POST)');
         response = await staffAPI.create(staffData);
       }
 
@@ -113,6 +117,7 @@ const StaffManagement = () => {
   };
 
   const resetForm = () => {
+    console.log('resetForm called - clearing editingStaff');
     setStaffData({
       name: '',
       phone: '',
@@ -279,6 +284,7 @@ const StaffManagement = () => {
         
         <button
           onClick={() => {
+            console.log('Add Staff button clicked');
             resetForm();
             setShowModal(true);
           }}

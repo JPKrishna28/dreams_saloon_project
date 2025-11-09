@@ -224,13 +224,10 @@ router.post('/',
 router.put('/:id', [
     body('name').optional().trim().notEmpty().withMessage('Employee name cannot be empty')
         .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
-    body('phone').optional().matches(/^[6-9]\d{9}$/).withMessage('Please enter a valid Indian mobile number'),
+    body('phone').optional().trim().notEmpty().withMessage('Phone number is required'),
     body('email').optional().isEmail().withMessage('Please enter a valid email address'),
-    body('role').optional().isIn(['Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee']).withMessage('Invalid role'),
-    body('specializations').optional().isArray({ min: 1 }).withMessage('At least one specialization is required'),
-    body('specializations.*').optional().isIn(['Hair Cut', 'Beard Trim', 'Shave', 'Hair Styling', 'Hair Wash', 'Facial', 'Massage']).withMessage('Invalid specialization'),
-    body('salary').optional().isFloat({ min: 0 }).withMessage('Salary must be a positive number'),
-    body('commission').optional().isFloat({ min: 0, max: 100 }).withMessage('Commission must be between 0 and 100')
+    body('role').optional().isIn(['Admin', 'Manager', 'Senior Barber', 'Junior Barber', 'Hair Stylist', 'Trainee', 'Receptionist']).withMessage('Invalid role'),
+    body('accessLevel').optional().isIn(['admin', 'manager', 'staff']).withMessage('Invalid access level')
 ], handleValidationErrors, async (req, res) => {
     try {
         const {
