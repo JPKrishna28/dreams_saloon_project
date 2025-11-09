@@ -117,8 +117,9 @@ const StaffManagement = () => {
   };
 
   const resetForm = () => {
-    console.log('resetForm called - clearing editingStaff');
-    setStaffData({
+    console.log('resetForm called - clearing editingStaff and all extra fields');
+    // Create a completely fresh staffData object without any leftover fields
+    const freshStaffData = {
       name: '',
       phone: '',
       email: '',
@@ -141,7 +142,9 @@ const StaffManagement = () => {
         canManageFeedback: false,
         canAccessSettings: false
       }
-    });
+    };
+    console.log('Setting fresh staffData:', freshStaffData);
+    setStaffData(freshStaffData);
     setEditingStaff(null);
   };
 
@@ -285,7 +288,9 @@ const StaffManagement = () => {
         <button
           onClick={() => {
             console.log('Add Staff button clicked');
+            console.log('Before resetForm - editingStaff:', editingStaff);
             resetForm();
+            console.log('After resetForm - about to open modal');
             setShowModal(true);
           }}
           className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
