@@ -59,17 +59,6 @@ export const customerAPI = {
   getStats: (id) => api.get(`/customers/${id}/stats`),
 };
 
-// Employee API
-export const employeeAPI = {
-  getAll: (params) => api.get('/employees', { params }),
-  getById: (id) => api.get(`/employees/${id}`),
-  create: (data) => api.post('/employees', data),
-  update: (id, data) => api.put(`/employees/${id}`, data),
-  delete: (id) => api.delete(`/employees/${id}`),
-  getPerformance: (id, params) => api.get(`/employees/${id}/performance`, { params }),
-  getAvailable: (serviceName, params) => api.get(`/employees/available/${serviceName}`, { params }),
-};
-
 // Appointment API
 export const appointmentAPI = {
   getAll: (params) => api.get('/appointments', { params }),
@@ -97,17 +86,6 @@ export const serviceAPI = {
   getByCategory: (category) => api.get(`/services/category/${category}`),
   getPopular: (params) => api.get('/services/analytics/popular', { params }),
   getStats: () => api.get('/services/analytics/stats'),
-};
-
-// Billing API
-export const billingAPI = {
-  getAll: (params) => api.get('/billing', { params }),
-  getById: (id) => api.get(`/billing/${id}`),
-  createBill: (appointmentId, data) => api.post(`/billing/create/${appointmentId}`, data),
-  updatePayment: (id, data) => api.put(`/billing/${id}/payment`, data),
-  getStats: (params) => api.get('/billing/stats/overview', { params }),
-  getReceipt: (id) => api.get(`/billing/${id}/receipt`),
-  search: (query, params) => api.get(`/billing/search/${query}`, { params }),
 };
 
 // General API utilities
