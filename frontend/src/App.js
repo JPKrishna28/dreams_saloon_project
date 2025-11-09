@@ -12,8 +12,6 @@ import StaffLogin from './pages/StaffLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminAppointments from './pages/AdminAppointments';
 import CustomerManagement from './pages/CustomerManagement';
-import EmployeeManagement from './pages/EmployeeManagement';
-import BillingManagement from './pages/BillingManagement';
 import ServiceManagement from './pages/ServiceManagement';
 import FeedbackForm from './pages/FeedbackForm';
 import FeedbackManagement from './pages/FeedbackManagement';
@@ -73,16 +71,6 @@ function App() {
             <Route path="/admin/customers" element={
               <ProtectedRoute>
                 <CustomerManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/employees" element={
-              <ProtectedRoute>
-                <EmployeeManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/billing" element={
-              <ProtectedRoute>
-                <BillingManagement />
               </ProtectedRoute>
             } />
             <Route path="/admin/services" element={

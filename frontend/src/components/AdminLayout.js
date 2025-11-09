@@ -31,8 +31,6 @@ const AdminLayout = ({ children }) => {
     { name: 'Services', href: '/admin/services', icon: ScissorsIcon, roles: ['admin', 'manager'] },
     { name: 'Customers', href: '/admin/customers', icon: UsersIcon, roles: ['admin', 'manager', 'staff'] },
     { name: 'Staff Management', href: '/admin/staff', icon: UserGroupIcon, roles: ['admin'] },
-    { name: 'Employees', href: '/admin/employees', icon: UsersIcon, roles: ['admin', 'manager'] },
-    { name: 'Billing', href: '/admin/billing', icon: CreditCardIcon, roles: ['admin', 'manager', 'staff'] },
     { name: 'Feedback', href: '/admin/feedback', icon: MessageSquareIcon, roles: ['admin', 'manager'] },
   ];
 

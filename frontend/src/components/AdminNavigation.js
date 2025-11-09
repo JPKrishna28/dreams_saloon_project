@@ -41,13 +41,6 @@ const AdminNavigation = ({ userRole = 'admin', userPermissions = {} }) => {
       accessLevels: ['admin', 'manager', 'staff']
     },
     {
-      name: 'Employees',
-      path: '/admin/employees',
-      icon: UserIcon,
-      permission: 'canManageEmployees',
-      accessLevels: ['admin', 'manager']
-    },
-    {
       name: 'Staff Management',
       path: '/admin/staff',
       icon: ShieldIcon,
@@ -60,13 +53,6 @@ const AdminNavigation = ({ userRole = 'admin', userPermissions = {} }) => {
       icon: SettingsIcon,
       permission: 'canManageServices',
       accessLevels: ['admin', 'manager']
-    },
-    {
-      name: 'Billing',
-      path: '/admin/billing',
-      icon: CreditCardIcon,
-      permission: 'canManageBilling',
-      accessLevels: ['admin', 'manager', 'staff']
     },
     {
       name: 'Feedback',
