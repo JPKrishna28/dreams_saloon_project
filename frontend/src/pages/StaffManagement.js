@@ -118,6 +118,10 @@ const StaffManagement = () => {
 
   const resetForm = () => {
     console.log('resetForm called - clearing editingStaff and all extra fields');
+    
+    // Force clear editing state first
+    setEditingStaff(null);
+    
     // Create a completely fresh staffData object without any leftover fields
     const freshStaffData = {
       name: '',
@@ -145,7 +149,7 @@ const StaffManagement = () => {
     };
     console.log('Setting fresh staffData:', freshStaffData);
     setStaffData(freshStaffData);
-    setEditingStaff(null);
+    // editingStaff already cleared above
   };
 
   const handleEdit = (staffMember) => {
@@ -289,6 +293,10 @@ const StaffManagement = () => {
           onClick={() => {
             console.log('Add Staff button clicked');
             console.log('Before resetForm - editingStaff:', editingStaff);
+            
+            // Force clear editing state first
+            setEditingStaff(null);
+            
             resetForm();
             console.log('After resetForm - about to open modal');
             setShowModal(true);
