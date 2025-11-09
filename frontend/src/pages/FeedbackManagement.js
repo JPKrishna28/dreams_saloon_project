@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { 
   MessageSquare as MessageIcon,
   Star as StarIcon,
-  Calendar as CalendarIcon,
   User as UserIcon,
   Phone as PhoneIcon,
   DollarSign as DollarSignIcon,
@@ -21,7 +20,7 @@ const FeedbackManagement = () => {
   const [ratingFilter, setRatingFilter] = useState('all');
 
   // Fetch feedback
-  const fetchFeedback = async (page = 1, rating = ratingFilter) => {
+  const fetchFeedback = useCallback(async (page = 1, rating = ratingFilter) => {
     try {
       setLoading(true);
       const params = { page, limit: 10 };
@@ -48,11 +47,11 @@ const FeedbackManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ratingFilter]);
 
   useEffect(() => {
     fetchFeedback();
-  }, []);
+  }, [fetchFeedback]);
 
   // Handle filter change
   const handleFilterChange = (rating) => {

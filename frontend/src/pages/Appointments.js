@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import { toast } from 'react-hot-toast';
 import { 
-  Clock as ClockIcon, 
   User as UserIcon, 
   Phone as PhoneIcon, 
   Scissors as ScissorsIcon,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { 
   Users as UsersIcon,
@@ -8,12 +8,9 @@ import {
   Edit as EditIcon,
   Phone as PhoneIcon,
   Mail as MailIcon,
-  Calendar as CalendarIcon,
-  Star as StarIcon,
   TrendingUp as TrendingUpIcon,
   X as XIcon,
-  Loader as LoaderIcon,
-  MapPin as MapPinIcon
+  Loader as LoaderIcon
 } from 'lucide-react';
 import { customerAPI } from '../services/api';
 
@@ -40,7 +37,7 @@ const CustomerManagement = () => {
   const [errors, setErrors] = useState({});
 
   // Fetch customers
-  const fetchCustomers = async (page = 1, search = searchTerm, status = filterStatus, withAppointments = showWithAppointments) => {
+  const fetchCustomers = useCallback(async (page = 1, search = searchTerm, status = filterStatus, withAppointments = showWithAppointments) => {
     try {
       setLoading(true);
       const params = {
@@ -68,11 +65,11 @@ const CustomerManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, filterStatus, showWithAppointments]);
 
   useEffect(() => {
     fetchCustomers();
-  }, []);
+  }, [fetchCustomers]);
 
   // Handle search and filter
   const handleSearch = (e) => {
