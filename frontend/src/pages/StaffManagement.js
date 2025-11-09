@@ -12,7 +12,7 @@ import {
   Crown as CrownIcon,
   User as UserIcon
 } from 'lucide-react';
-import { employeeAPI } from '../services/api';
+import { staffAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const StaffManagement = () => {
@@ -57,7 +57,7 @@ const StaffManagement = () => {
 
   const fetchStaff = async () => {
     try {
-      const response = await employeeAPI.getAll();
+      const response = await staffAPI.getAll();
       if (response.data.success) {
         setStaff(response.data.data);
       }
@@ -75,9 +75,9 @@ const StaffManagement = () => {
     try {
       let response;
       if (editingStaff) {
-        response = await employeeAPI.update(editingStaff._id, staffData);
+        response = await staffAPI.update(editingStaff._id, staffData);
       } else {
-        response = await employeeAPI.create(staffData);
+        response = await staffAPI.create(staffData);
       }
 
       if (response.data.success) {
@@ -95,7 +95,7 @@ const StaffManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this staff member?')) {
       try {
-        await employeeAPI.delete(id);
+        await staffAPI.delete(id);
         toast.success('Staff deleted successfully');
         fetchStaff();
       } catch (error) {

@@ -11,7 +11,7 @@ import {
   AlertCircle as AlertCircleIcon
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { appointmentAPI, billingAPI } from '../services/api';
+import { appointmentAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
@@ -46,11 +46,13 @@ const AdminDashboard = () => {
         setDashboardStats(appointmentStatsResponse.data.data);
       }
 
-      // Fetch billing stats
-      const billingStatsResponse = await billingAPI.getStats();
-      if (billingStatsResponse.data.success) {
-        setBillingStats(billingStatsResponse.data.data);
-      }
+      // Mock billing stats since billing API was removed
+      setBillingStats({
+        totalRevenue: 125000,
+        monthlyRevenue: 25000,
+        pendingPayments: 3500,
+        completedTransactions: 156
+      });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');

@@ -59,6 +59,15 @@ export const customerAPI = {
   getStats: (id) => api.get(`/customers/${id}/stats`),
 };
 
+// Staff API (for staff management)
+export const staffAPI = {
+  getAll: (params) => api.get('/employees', { params }),
+  getById: (id) => api.get(`/employees/${id}`),
+  create: (data) => api.post('/employees', data),
+  update: (id, data) => api.put(`/employees/${id}`, data),
+  delete: (id) => api.delete(`/employees/${id}`),
+};
+
 // Appointment API
 export const appointmentAPI = {
   getAll: (params) => api.get('/appointments', { params }),
